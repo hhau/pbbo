@@ -1,0 +1,25 @@
+Package: pbbo
+Title: Prior by Bayesian Optimisation
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Andrew",
+           family = "Manderson",
+           role = c("aut", "cre"),
+           email = "andrew.manderson@mrc-bsu.cam.ac.uk",
+           comment = c(ORCID = "0000-0002-4946-9016"))
+Description: A thin wrapper around mlrMBO for choosing prior hyperparameters
+    based on an ideal prior predictive distribution.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.2
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Imports: 
+    mlrMBO (>= 1.1.5),
+    magrittr,
+    smoof (>= 1.6.0.2),
+    DiceKriging (>= 1.6.0),
+    rgenoud (>= 5.8.3.0)
