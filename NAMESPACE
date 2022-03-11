@@ -3,3 +3,5 @@
 export("%>%")
 export(pbbo)
 importFrom(magrittr,"%>%")
+importFrom(stats,ecdf)
+importFrom(stats,runif)

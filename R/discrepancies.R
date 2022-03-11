@@ -1,10 +1,12 @@
 build_discrep <- function(
-  target_cdf,
+  target_lcdf,
   target_sampler,
   prior_predictive_sampler,
   internal_discrepancy_f,
   n_internal_prior_draws,
   importance_method,
+  importance_lower,
+  importance_upper,
   n_internal_importance_draws
 ) {
   # will return a function f(lambda) that evaluates the discrepancy
@@ -19,6 +21,22 @@ build_discrep <- function(
       lambda_mlrform
     )
 
+    futile.logger::flog.trace(
+      "lamba_mlrform contains: %s",
+      data.frame(
+        names = names(lambda_mlrform),
+        vals = as.numeric(lambda_mlrform)
+      ) %>%
+        tidyr::unite( col = res, sep = ': ') %>%
+        magrittr::extract2('res') %>%
+        paste0(collapse = ', ')
+    )
+
+    futile.logger::flog.trace(
+      "prior_sample contains: %s",
+      paste(format(prior_sample, digits = 2), collapse = ', ')
+    )
+
     prior_ecdf <- ecdf(prior_sample)
 
     # ideally one could use the samples from the other prior to figure out the
@@ -27,14 +45,16 @@ build_discrep <- function(
     target_sample <- target_sampler(n_internal_prior_draws)
 
     importance_draws <- local_importance(
-      prior_sample,
-      target_sample,
-      n_internal_importance_draws
+      sample_one = prior_sample,
+      sample_two = target_sample,
+      n_internal_importance_draws = n_internal_importance_draws,
+      lower = importance_lower,
+      upper = importance_upper
     )
 
     internal_result <- internal_discrepancy_f(
-      cdf_1 = prior_ecdf,
-      cdf_2 = target_cdf,
+      prior_ecdf,
+      target_lcdf,
       points = importance_draws$points,
       weights = importance_draws$weights
     )
@@ -45,35 +65,119 @@ build_discrep <- function(
   return(res)
 }
 
+build_discrep_covariate <- function(
+  target_lcdf,
+  target_sampler,
+  prior_predictive_sampler,
+  covariate_list,
+  internal_discrepancy_f,
+  n_internal_prior_draws,
+  importance_method,
+  importance_lower,
+  importance_upper,
+  n_internal_importance_draws
+) {
+  n_covariate_obs <- length(covariate_list)
+
+  discrep_list <- lapply(covariate_list, function(a_covariate_draw) {
+    local_target_lcdf <- \(x) target_lcdf(x, a_covariate_draw)
+    local_target_sampler <- \(n) target_sampler(n, a_covariate_draw)
+    local_pp_sampler <- \(n, l) prior_predictive_sampler(n, l, a_covariate_draw)
+
+    inner_discrep <- build_discrep(
+      target_lcdf = local_target_lcdf,
+      target_sampler = local_target_sampler,
+      prior_predictive_sampler = local_pp_sampler,
+      internal_discrepancy_f = internal_discrepancy_f,
+      n_internal_prior_draws = round(n_internal_prior_draws / n_covariate_obs),
+      importance_method = importance_method,
+      importance_lower = NULL,
+      importance_upper = NULL,
+      n_internal_importance_draws = round(n_internal_importance_draws / n_covariate_obs)
+    )
+  })
+
+  full_discrep <- function(lambda) {
+    inner_res <- lapply(discrep_list, function(sub_discrep) {
+      sub_discrep(lambda)
+    }) %>%
+      unlist() %>%
+      sum() # assumes log discrepancy values are returned
+
+    return(inner_res)
+  }
+
+  return(full_discrep)
+}
+
+
 # cramer-von mises
-cvm_discrepancy <- function(cdf_1, cdf_2, points, weights) {
-  base <- (cdf_1(points) - cdf_2(points))^2
-  res <- sum(base / weights)
-  return(res)
+log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
+  log_n <- log(length(points))
+  vals_1 <- ecdf_1(points)
+  log_vals_2 <- log_cdf_2(points)
+
+  futile.logger::flog.trace(
+    "points contains: %s",
+    paste(format(points, digits = 4), collapse = ', ')
+  )
+
+  futile.logger::flog.trace(
+    "log_vals_2 contains: %s",
+    paste(format(log_vals_2, digits = 4), collapse = ', ')
+  )
+
+  stopifnot(
+    length(points) > 0,
+    all(weights > 0),
+    all(log_vals_2 <= 0)
+  )
+
+  log_top <- 2 * log(abs(vals_1 - exp(log_vals_2)))
+  log_weights <- log(weights)
+  log_integrand <- log_top - log_weights
+  max_c <- max(log_integrand)
+  log_res <- log(sum(exp(log_integrand - max_c))) + max_c
+  final_res <- -log_n + log_res
+  return(as.numeric(final_res))
 }
 
 # andersen darling
-# the issue is in the denominator, and does not go away with a trivial move
-# to the log scale. Computing this accurately will involve:
-# 1. computing the lcdf of both samples accurately (in the tails)
-# 2. computing the log numerator accurately (log-sum-exp or equiv)
-# 3. computing log1m(cdf_2(x)) accurately (look at stan code?)
-ad_discrepancy <- function(cdf_1, cdf_2, points, weights) {
-  stop(
-    "Computing the Anderson–Darling distance is numerically unstable for
-    CDFs too far apart."
+# note that the second argument is the **log_cdf**
+log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
+  log_n <- log(length(points))
+  high_prec_points <- Rmpfr::mpfr(points, 120)
+  high_prec_weights <- Rmpfr::mpfr(weights, 120)
+
+  vals_1 <- ecdf_1(as.numeric(points))
+  log_vals_2 <- log_cdf_2(high_prec_points)
+
+  # method assumes that log_cdf_2 returns lcdf values
+  # leq to deal with rounding up to zero? for the right hand tail????
+  # high prec is supposed to get around that.
+  futile.logger::flog.trace(
+    "log_vals_2 contains: %s",
+    paste(format(log_vals_2, digits = 4), collapse = ', ')
   )
 
-  vals_1 <- cdf_1(points)
-  vals_2 <- cdf_2(points)
+  stopifnot(all(log_vals_2 <= 0))
 
-  base <- (vals_1 - vals_2)^2 / (vals_2 * (1 - vals_2))
-  res <- sum(base / weights)
-  return(res)
+  # numerator term -- will underflow, which will make me return 0
+  # use high prec log_vals_2
+  log_top <- 2 * log(abs(vals_1 - exp(log_vals_2)))
+
+  # denominator term
+  log_bot <- (log_vals_2) + Rmpfr::log1mexp(a = -log_vals_2)
+  log_weights_term <- log(high_prec_weights)
+  log_integrand <- log_top - log_bot - log_weights_term
+  max_c <- max(log_integrand)
+  log_res <- log(sum(exp(log_integrand - max_c))) + max_c
+  final_res <- -log_n + log_res
+  return(as.numeric(final_res))
 }
 
 # other functions from @drovandi_comparions_2021? MMD+Laplace, Wasserstein
 # these do not require the importance sampling approach, as they are entirely
 # sample specific.
-# in fact, we could alternate depending on which of target_cdf or target_sampler
+# in fact, we could alternate depending on which of target_lcdf or target_sampler
 # was provided

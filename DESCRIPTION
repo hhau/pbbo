@@ -22,4 +22,7 @@ Imports:
     magrittr,
     smoof (>= 1.6.0.2),
     DiceKriging (>= 1.6.0),
-    rgenoud (>= 5.8.3.0)
+    rgenoud (>= 5.8.3.0),
+    stats,
+    futile.logger,
+    Rmpfr

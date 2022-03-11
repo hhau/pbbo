@@ -1,8 +1,8 @@
 library(mlrMBO)
 
 # necessary things
-target_cdf <- function(x) {
-  pnorm(x, mean = 2, sd = 0.5)
+target_lcdf <- function(x) {
+  pnorm(x, mean = 2, sd = 0.5, log.p = TRUE)
 }
 
 target_sampler <- function(n) {
@@ -22,10 +22,10 @@ param_set <- makeParamSet(
 test_that('main function can run error free', {
   mlr_res <- suppressWarnings(pbbo(
     model_name = 'test_normal',
-    target_cdf = target_cdf,
+    target_lcdf = target_lcdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
-    discrepancy = 'cvm',
+    discrepancy = 'log_cvm',
     param_set = param_set,
     n_internal_prior_draws = 20,
     n_internal_importance_draws = 10,
@@ -39,7 +39,7 @@ test_that('main function can run error free', {
 test_that('bad args give errors', {
   expect_error(suppressWarnings(pbbo(
     model_name = 'test_normal',
-    target_cdf = target_cdf,
+    target_lcdf = target_lcdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     discrepancy = 'definitely_not_a_discrep',

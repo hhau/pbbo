@@ -1,10 +1,19 @@
+# This might be a poor idea? As it effectively truncates the integral to
+# the values spanned by [lower, upper].
 uniform_importance <- function(
   sample_one,
   sample_two,
-  n_internal_importance_draws
+  n_internal_importance_draws,
+  lower,
+  upper
 ) {
-  lower <- min(c(sample_one, sample_two))
-  upper <- max(c(sample_one, sample_two))
+  if (is.null(lower)) {
+    lower <- min(c(sample_one, sample_two))
+  }
+
+  if (is.null(upper)) {
+    upper <- max(c(sample_one, sample_two))
+  }
 
   stopifnot(lower < upper)
 

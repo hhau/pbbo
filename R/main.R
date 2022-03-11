@@ -1,7 +1,14 @@
 #' \code{pbbo}: prior by Bayesian optimisation
+#' @encoding UTF-8
+#'
 #' @param model_name String: name of the model/optimisation function
-#' @param target_cdf Function: Vectorised target CDF. Takes one argument, a
-#'   vector of points at which we wish to evaluate the CDF.
+#' @param target_lcdf Function: Vectorised target log-CDF. Takes one argument, a
+#'   vector of points at which we wish to evaluate the log-CDF. This function
+#'   must accept \code{\link[Rmpfr]{mpfr}} points. This requirement handled by
+#'   calling \code{as.numeric} on the vector of points, but performance is
+#'   improved by using high precision versions of functions compatible with
+#'   \code{\link[Rmpfr]{mpfr}} points. See \code{\link[Rmpfr]{mpfr-class}}
+#'   for a range of such functions.
 #' @param target_sampler Function: Generates samples from the target
 #'   distribution. Takes one argument \code{n}, the desired number of samples.
 #' @param prior_predictive_sampler Function: Generates samples from the prior
@@ -21,33 +28,51 @@
 #'   the elements of which would be accessible inside
 #'   \code{prior_predictive_sampler} as \code{c(lambda['mu1'], lambda['mu2'],
 #'   lambda['sigma'])}.
-#' @param discrepancy String (or Function): One of either \code{'cvm'} or
-#'   \code{'ad'} for Cramér–von Mises (default) or Anderson–Darling distance
+#' @param covariate_values: A vector or matrix/data.frame of covariate values:
+#'   \bold{including covariate values changes the signautres required for}
+#'   \code{target_lcdf}, \code{target_sampler}, \bold{and}
+#'   \code{prior_predictive_sampler}. Each of these function must take an
+#'   additional third argument, perhaps called \code{cov}, that ditates the
+#'   behaviour of the function at a specific covariate value, i.e. value in the
+#'   covariate vector or row in the covariate matrix.
+#' @param discrepancy String (or Function): One of either \code{'log_cvm'} or
+#'   \code{'log_ad'} for Cramér–von Mises (default) or Anderson–Darling distance
 #'   respectively. The latter is currenly unsupported as it is too numerically
 #'   difficult to compute accurately. Alternatively, one can supply a function
 #'   with thesignature \code{function(cdf_1, cdf_2, points, weights)}, where the
 #'   first two arguments are (E)CDF functions, \code{points} is a vector of
 #'   evaluation points, and \code{weights} is the corresponding vector of
 #'   importance weights.
-#' @param initial_points_to_eval \code{data.frame}: A data.frame of points at which
-#'   one might wish to evaluate the discrepancy function at initially. The colums
-#'   of this data.farme must match the names as described by \code{param_set}, and
-#'   include a column called \code{y}, which may be full of \code{NA}s if the
-#'   discrepancy has not been evaluated at the points. Defaults to \code{NULL}.
+#' @param initial_points_to_eval \code{data.frame}: A data.frame of points at
+#'   which one might wish to evaluate the discrepancy function at initially. The
+#'   colums of this data.farme must match the names as described by
+#'   \code{param_set}, and include a column called \code{y}, which may be full
+#'   of \code{NA}s if the discrepancy has not been evaluated at the points.
+#'   Defaults to \code{NULL}.
 #' @param n_internal_prior_draws Numeric: Number of draws to generate from the
 #'   prior predictive distribution for the given value of \code{lambda} in each
-#'   of the optimisation iterations. More draws result in better estimates of the
-#'   ECDF.
+#'   of the optimisation iterations. More draws result in better estimates of
+#'   the ECDF.
 #' @param importance_method String: Defaults to \code{'uniform'}. Perhaps in the
 #'   future this will allow one to adjust the type of importance sampling use to
 #'   compute the discrepancy function.
+#' @param importance_lower Numeric: Defaults to \code{NULL}. The default
+#'   'uniform' Importance sampling method sets the lower bound of the uniform
+#'   importance distribution to be \code{min(sample_from_target,
+#'   sample_from_current_prior_predictive)}. If you wish to set this lower bound
+#'   manually, perhaps if the draws from the  prior predictive distribution have
+#'   a compact support, then set \code{importance_lower} to a specific value
+#' @param importance_upper Numeric: Defaults to \code{NULL}. Corresponding
+#'   upper bound to \code{importance_lower}.
 #' @param n_internal_importance_draws Numeric: Number of draws to generate from
-#'   the importance distribution, and subsequently used to evalute the discrepancy
-#'   intergral.
+#'   the importance distribution, and subsequently used to evalute the
+#'   discrepancy intergral.
 #' @param bayes_opt_iters Numeric: Number of iterations of Bayesian optimisation
 #'   to use. Passed to \code{\link[mlrMBO]{setMBOControlTermination}} as
 #'   \code{iters}.
-#' @param ... Other options passed to ?. Currently unused.
+#' @param bayes_opt_print Boolean: if \code{TRUE}, print the progress/status
+#' from \code{\link[mlrMBO]{mbo}}. Defaults to \code{FALSE}.
+#' @param ... Currently unused.
 #'
 #' @return
 #' @export
@@ -57,8 +82,8 @@
 #' library(pbbo)
 #' library(mlrMBO)
 #'
-#' target_cdf <- function(x) {
-#'   pnorm(x, mean = 2, sd = 0.5)
+#' target_lcdf <- function(x) {
+#'   pnorm(x, mean = 2, sd = 0.5, log.p = TRUE)
 #' }
 #'
 #' target_sampler <- function(n) {
@@ -76,7 +101,7 @@
 #'
 #' pbbo(
 #'   model_name = 'test_normal',
-#'   target_cdf = target_cdf,
+#'   target_lcdf = target_lcdf,
 #'   target_sampler = target_sampler,
 #'   prior_predictive_sampler = prior_predictive_sampler,
 #'   discrepancy = 'cvm',
@@ -85,29 +110,31 @@
 #'   n_internal_importance_draws = 200,
 #'   bayes_opt_iters = 50,
 #'   bayes_opt_print = FALSE
-#' )
-#' }
+#' )}
 pbbo <- function(
   model_name = 'default',
-  target_cdf,
+  target_lcdf,
   target_sampler,
   prior_predictive_sampler,
   param_set,
-  discrepancy = 'cvm',
+  covariate_values = NULL,
+  discrepancy = 'log_cvm',
   initial_points_to_eval = NULL,
   n_internal_prior_draws = 250,
   importance_method = 'uniform',
+  importance_lower = NULL,
+  importance_upper = NULL,
   n_internal_importance_draws = 100,
   bayes_opt_iters = 100,
   bayes_opt_print = FALSE,
   ...
 ) {
   stopifnot(
-    is.function(target_cdf),
+    is.function(target_lcdf),
     is.function(target_sampler),
     is.function(prior_predictive_sampler),
     is.list(param_set),
-    discrepancy %in% c('ad', 'cvm') | is.function(discrepancy),
+    discrepancy %in% c('log_ad', 'log_cvm') | is.function(discrepancy),
     is.numeric(n_internal_prior_draws),
     is.numeric(n_internal_importance_draws),
     1 < n_internal_prior_draws,
@@ -119,18 +146,49 @@ pbbo <- function(
     internal_discrepancy_f <- discrepancy
   } else {
     x <- paste0(discrepancy, '_discrepancy')
-    internal_discrepancy_f <- match.fun(x)
+    internal_discrepancy_f <- get(x, envir = environment(pbbo))
   }
 
-  discrep <- build_discrep(
-    target_cdf = target_cdf,
-    target_sampler = target_sampler,
-    prior_predictive_sampler = prior_predictive_sampler,
-    internal_discrepancy_f = internal_discrepancy_f,
-    n_internal_prior_draws = n_internal_prior_draws,
-    importance_method = importance_method,
-    n_internal_importance_draws = n_internal_importance_draws
-  )
+  if (!is.null(covariate_values)) {
+    if (is.vector(covariate_values)) {
+      covariate_list <- as.list(covariate_values)
+      covariate_entry_lengths <- sapply(covariate_list, length)
+      stopifnot(
+        length(covariate_list) == length(covariate_values),
+        all(covariate_entry_lengths == covariate_entry_lengths[1])
+      )
+    } else if (is.matrix(covariate_values) | is.data.frame(covariate_values)) {
+      covariate_list <- matrixlike_to_rowlist(covariate_values)
+      stopifnot(length(covariate_list) == nrow(covariate_values))
+    } else {
+      stop("Unsure how to handle non vector/matrix-like covariate values.")
+    }
+
+    discrep <- build_discrep_covariate(
+      target_lcdf = target_lcdf,
+      target_sampler = target_sampler,
+      prior_predictive_sampler = prior_predictive_sampler,
+      covariate_list = covariate_list,
+      internal_discrepancy_f = internal_discrepancy_f,
+      n_internal_prior_draws = n_internal_prior_draws,
+      importance_method = importance_method,
+      importance_lower = NULL,
+      importance_upper = NULL,
+      n_internal_importance_draws = n_internal_importance_draws
+    )
+  } else {
+    discrep <- build_discrep(
+      target_lcdf = target_lcdf,
+      target_sampler = target_sampler,
+      prior_predictive_sampler = prior_predictive_sampler,
+      internal_discrepancy_f = internal_discrepancy_f,
+      n_internal_prior_draws = n_internal_prior_draws,
+      importance_method = importance_method,
+      importance_lower = NULL,
+      importance_upper = NULL,
+      n_internal_importance_draws = n_internal_importance_draws
+    )
+  }
 
   objective_function <- smoof::makeSingleObjectiveFunction(
     name = model_name,
