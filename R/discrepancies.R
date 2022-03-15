@@ -80,9 +80,9 @@ build_discrep_covariate <- function(
   n_covariate_obs <- length(covariate_list)
 
   discrep_list <- lapply(covariate_list, function(a_covariate_draw) {
-    local_target_lcdf <- \(x) target_lcdf(x, a_covariate_draw)
-    local_target_sampler <- \(n) target_sampler(n, a_covariate_draw)
-    local_pp_sampler <- \(n, l) prior_predictive_sampler(n, l, a_covariate_draw)
+    local_target_lcdf <- function(x) target_lcdf(x, a_covariate_draw)
+    local_target_sampler <- function(n) target_sampler(n, a_covariate_draw)
+    local_pp_sampler <- function(n, l) prior_predictive_sampler(n, l, a_covariate_draw)
 
     inner_discrep <- build_discrep(
       target_lcdf = local_target_lcdf,
