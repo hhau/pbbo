@@ -25,4 +25,5 @@ Imports:
     rgenoud (>= 5.8.3.0),
     stats,
     futile.logger,
-    Rmpfr
+    Rmpfr,
+    tidyr

@@ -46,7 +46,7 @@ ad_test_discrepancy <- build_discrep(
   target_lcdf = ad_test_target_lcdf,
   target_sampler = ad_test_target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
-  internal_discrepancy_f = pbbo::log_ad_discrepancy,
+  internal_discrepancy_f = pbbo:::log_ad_discrepancy,
   n_internal_prior_draws = 5e3,
   importance_method = 'uniform',
   importance_lower = NULL,

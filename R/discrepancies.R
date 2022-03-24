@@ -27,7 +27,7 @@ build_discrep <- function(
         names = names(lambda_mlrform),
         vals = as.numeric(lambda_mlrform)
       ) %>%
-        tidyr::unite( col = res, sep = ': ') %>%
+        tidyr::unite(col = res, sep = ': ') %>%
         magrittr::extract2('res') %>%
         paste0(collapse = ', ')
     )

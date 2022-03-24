@@ -57,6 +57,14 @@ the elements of which would be accessible inside
 \code{prior_predictive_sampler} as \code{c(lambda['mu1'], lambda['mu2'],
   lambda['sigma'])}.}
 
+\item{covariate_values}{An optional vector or matrix/data.frame of covariate
+values: \bold{including covariate values changes the signautres required
+for} \code{target_lcdf}, \code{target_sampler}, \bold{and}
+\code{prior_predictive_sampler}. Each of these function must take an
+additional third argument, perhaps called \code{cov}, that ditates the
+behaviour of the function at a specific covariate value, i.e. value in the
+covariate vector or row in the covariate matrix.}
+
 \item{discrepancy}{String (or Function): One of either \code{'log_cvm'} or
 \code{'log_ad'} for Cramér–von Mises (default) or Anderson–Darling distance
 respectively. The latter is currenly unsupported as it is too numerically
@@ -104,17 +112,9 @@ to use. Passed to \code{\link[mlrMBO]{setMBOControlTermination}} as
 from \code{\link[mlrMBO]{mbo}}. Defaults to \code{FALSE}.}
 
 \item{...}{Currently unused.}
-
-\item{covariate_values:}{A vector or matrix/data.frame of covariate values:
-\bold{including covariate values changes the signautres required for}
-\code{target_lcdf}, \code{target_sampler}, \bold{and}
-\code{prior_predictive_sampler}. Each of these function must take an
-additional third argument, perhaps called \code{cov}, that ditates the
-behaviour of the function at a specific covariate value, i.e. value in the
-covariate vector or row in the covariate matrix.}
 }
 \value{
-
+An \code{\link[mlrMBO]{MBOSingleObjResult}}.
 }
 \description{
 \code{pbbo}: prior by Bayesian optimisation
