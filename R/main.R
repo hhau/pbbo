@@ -172,8 +172,8 @@ pbbo <- function(
       internal_discrepancy_f = internal_discrepancy_f,
       n_internal_prior_draws = n_internal_prior_draws,
       importance_method = importance_method,
-      importance_lower = NULL,
-      importance_upper = NULL,
+      importance_lower = importance_lower,
+      importance_upper = importance_upper,
       n_internal_importance_draws = n_internal_importance_draws
     )
   } else {
@@ -184,8 +184,8 @@ pbbo <- function(
       internal_discrepancy_f = internal_discrepancy_f,
       n_internal_prior_draws = n_internal_prior_draws,
       importance_method = importance_method,
-      importance_lower = NULL,
-      importance_upper = NULL,
+      importance_lower = importance_lower,
+      importance_upper = importance_upper,
       n_internal_importance_draws = n_internal_importance_draws
     )
   }

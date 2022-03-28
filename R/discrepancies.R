@@ -91,8 +91,8 @@ build_discrep_covariate <- function(
       internal_discrepancy_f = internal_discrepancy_f,
       n_internal_prior_draws = round(n_internal_prior_draws / n_covariate_obs),
       importance_method = importance_method,
-      importance_lower = NULL,
-      importance_upper = NULL,
+      importance_lower = importance_lower,
+      importance_upper = importance_upper,
       n_internal_importance_draws = round(n_internal_importance_draws / n_covariate_obs)
     )
   })
