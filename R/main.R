@@ -72,6 +72,9 @@
 #'   \code{iters}.
 #' @param bayes_opt_print Boolean: if \code{TRUE}, print the progress/status
 #' from \code{\link[mlrMBO]{mbo}}. Defaults to \code{FALSE}.
+#' @param extra_objective_term Function: univariate real-value function that
+#' takes \code{lambda} as an argument and the result is added on to the
+#' objective function.
 #' @param ... Currently unused.
 #'
 #' @return An \code{\link[mlrMBO]{MBOSingleObjResult}}.
@@ -127,6 +130,7 @@ pbbo <- function(
   n_internal_importance_draws = 100,
   bayes_opt_iters = 100,
   bayes_opt_print = FALSE,
+  extra_objective_term = NULL,
   ...
 ) {
   stopifnot(
@@ -139,7 +143,8 @@ pbbo <- function(
     is.numeric(n_internal_importance_draws),
     1 < n_internal_prior_draws,
     importance_method %in% c('uniform'),
-    1 < n_internal_importance_draws
+    1 < n_internal_importance_draws,
+    is.function(extra_objective_term)
   )
 
   if (is.function(discrepancy)) {
@@ -164,7 +169,7 @@ pbbo <- function(
       stop("Unsure how to handle non vector/matrix-like covariate values.")
     }
 
-    discrep <- build_discrep_covariate(
+    discrep_partial <- build_discrep_covariate(
       target_lcdf = target_lcdf,
       target_sampler = target_sampler,
       prior_predictive_sampler = prior_predictive_sampler,
@@ -177,7 +182,7 @@ pbbo <- function(
       n_internal_importance_draws = n_internal_importance_draws
     )
   } else {
-    discrep <- build_discrep(
+    discrep_partial <- build_discrep(
       target_lcdf = target_lcdf,
       target_sampler = target_sampler,
       prior_predictive_sampler = prior_predictive_sampler,
@@ -189,6 +194,14 @@ pbbo <- function(
       n_internal_importance_draws = n_internal_importance_draws
     )
   }
+
+  if (!is.null(extra_objective_term)) {
+    discrep <- function(lambda) {
+      discrep_partial(lambda) + extra_objective_term(lambda)
+    }
+  } else (
+    discrep <- discrep_partial
+  )
 
   objective_function <- smoof::makeSingleObjectiveFunction(
     name = model_name,
