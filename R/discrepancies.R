@@ -104,7 +104,8 @@ build_discrep_covariate <- function(
       unlist() %>%
       sum() # assumes log discrepancy values are returned
 
-    return(inner_res)
+    # This scaling might be important for interpreting the function later.
+    return((1 / n_covariate_obs) * inner_res)
   }
 
   return(full_discrep)
