@@ -143,8 +143,7 @@ pbbo <- function(
     is.numeric(n_internal_importance_draws),
     1 < n_internal_prior_draws,
     importance_method %in% c('uniform'),
-    1 < n_internal_importance_draws,
-    is.function(extra_objective_term)
+    1 < n_internal_importance_draws
   )
 
   if (is.function(discrepancy)) {
@@ -195,7 +194,7 @@ pbbo <- function(
     )
   }
 
-  if (!is.null(extra_objective_term)) {
+  if (!is.null(extra_objective_term) & is.function(extra_objective_term)) {
     discrep <- function(lambda) {
       discrep_partial(lambda) + extra_objective_term(lambda)
     }
