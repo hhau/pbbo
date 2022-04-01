@@ -195,23 +195,36 @@ pbbo <- function(
   }
 
   if (!is.null(extra_objective_term) & is.function(extra_objective_term)) {
-    discrep <- function(lambda) {
-      discrep_partial(lambda) + extra_objective_term(lambda)
-    }
-  } else (
-    discrep <- discrep_partial
-  )
+    objective_function <- smoof::makeMultiObjectiveFunction(
+      name = model_name,
+      fn = function(l) c(discrep_partial(l), extra_objective_term(l)),
+      n.objectives = 2,
+      par.set = param_set,
+      minimize = c(TRUE, TRUE),
+      noisy = FALSE
+    )
 
-  objective_function <- smoof::makeSingleObjectiveFunction(
-    name = model_name,
-    fn = discrep,
-    par.set = param_set,
-    minimize = TRUE,
-    noisy = TRUE
-  )
+    control_obj <- mlrMBO::makeMBOControl(
+      n.objectives = 2,
+      #final.method = 'best.predicted',
+      propose.points = 5,
+      #final.evals = 5
+    ) %>%
+      mlrMBO::setMBOControlInfill(opt = 'nsga2') %>%
+      mlrMBO::setMBOControlTermination(iters = bayes_opt_iters) %>%
+      mlrMBO::setMBOControlMultiObj(method = "mspot")
+  } else {
+    objective_function <- smoof::makeSingleObjectiveFunction(
+      name = model_name,
+      fn = discrep_partial,
+      par.set = param_set,
+      minimize = TRUE,
+      noisy = TRUE
+    )
 
-  control_obj <- mlrMBO::makeMBOControl(final.method = 'best.predicted') %>%
-    mlrMBO::setMBOControlTermination(iters = bayes_opt_iters)
+    control_obj <- mlrMBO::makeMBOControl(final.method = 'best.predicted') %>%
+      mlrMBO::setMBOControlTermination(iters = bayes_opt_iters)
+  }
 
   res <- mlrMBO::mbo(
     fun = objective_function,
