@@ -207,7 +207,7 @@ pbbo <- function(
     control_obj <- mlrMBO::makeMBOControl(
       n.objectives = 2,
       #final.method = 'best.predicted',
-      propose.points = 5,
+      propose.points = 1,
       #final.evals = 5
     ) %>%
       mlrMBO::setMBOControlInfill(opt = 'nsga2') %>%
