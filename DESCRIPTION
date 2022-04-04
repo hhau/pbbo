@@ -26,4 +26,5 @@ Imports:
     stats,
     futile.logger,
     Rmpfr,
-    tidyr
+    tidyr,
+    emoa
