@@ -27,4 +27,5 @@ Imports:
     futile.logger,
     Rmpfr,
     tidyr,
-    emoa
+    emoa,
+    matrixStats
