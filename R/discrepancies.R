@@ -13,7 +13,10 @@ build_discrep <- function(
   # given a certain value of lambda.
 
   # this may need to be inside the function for dispatch to work.
-  local_importance <- match.fun(paste0(importance_method, "_importance"))
+  local_importance <- get(
+    paste0(importance_method, "_importance"),
+    envir = environment(pbbo)
+  )
 
   res <- function(lambda_mlrform) {
     prior_sample <- prior_predictive_sampler(
