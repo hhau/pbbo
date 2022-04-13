@@ -1,4 +1,4 @@
-n_importance_draws <- 100
+n_internal_importance_draws <- 100
 
 sample_one <- rgamma(n = 100, shape = 3, rate = 0.2)
 sample_two <- rgamma(n = 100, shape = 5, rate = 1.2)
@@ -6,18 +6,18 @@ sample_two <- rgamma(n = 100, shape = 5, rate = 1.2)
 gamma_importance_res <- gamma_mixture_importance(
   sample_one = sample_one,
   sample_two = sample_two,
-  n_importance_draws = n_importance_draws
+  n_internal_importance_draws = n_internal_importance_draws
 )
 
 test_that("gamma importance result is correct shape with valid entries", {
   expect_length(
     gamma_importance_res$points,
-    n_importance_draws
+    n_internal_importance_draws
   )
 
   expect_length(
     gamma_importance_res$weights,
-    n_importance_draws
+    n_internal_importance_draws
   )
 
   expect_numeric(

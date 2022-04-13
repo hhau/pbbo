@@ -30,11 +30,11 @@ uniform_importance <- function(
 student_t_mixture_importance <- function(
   sample_one,
   sample_two,
-  n_importance_draws,
+  n_internal_importance_draws,
   ...
 ) {
   params <- make_params_mix_student_t(sample_one, sample_two)
-  points <- sample_mix_student_t(n_importance_draws, params)
+  points <- sample_mix_student_t(n = n_internal_importance_draws, params)
   weights <- density_mix_student_t(points, params)
   res <- list(points = points, weights = weights)
   return(res)
@@ -113,11 +113,11 @@ sample_mix_student_t <- function(n, params) {
 gamma_mixture_importance <- function(
   sample_one,
   sample_two,
-  n_importance_draws,
+  n_internal_importance_draws,
   ...
 ) {
   params <- make_params_mix_gamma(sample_one, sample_two)
-  points <- sample_mix_gamma(n_importance_draws, params)
+  points <- sample_mix_gamma(n = n_internal_importance_draws, params)
   weights <- density_mix_gamma(points, params)
   res <- list(points = points, weights = weights)
   return(res)
@@ -140,6 +140,13 @@ make_params_mix_gamma <- function(
     rate_1 = mean_s1 / var_s1,
     rate_2 = mean_s2 / var_s2,
     mix_weight = mix_weight
+  )
+
+  futile.logger::flog.trace(
+    paste(
+      "mix_gamma params contains",
+      paste(names(params), params, sep = " = ", collapse = "; ")
+    )
   )
 
   return(params)
@@ -180,12 +187,18 @@ sample_mix_gamma <- function(
   n,
   params
 ) {
-  samples_per_component <- table(sample(
+  samples_per_component <- as.numeric(table(sample(
     x = c(1, 2),
     size = n,
     replace = TRUE,
     prob = c(params$mix_weight, 1 - params$mix_weight)
-  ))
+  )))
+
+  futile.logger::flog.trace(
+    "[sample_mix_gamma] samples_per_component = (%d, %d)",
+    samples_per_component[1],
+    samples_per_component[2]
+  )
 
   points_one <- rgamma(
     n = samples_per_component[1],
