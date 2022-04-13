@@ -19,8 +19,12 @@ pbbo(
   importance_lower = NULL,
   importance_upper = NULL,
   n_internal_importance_draws = 100,
-  bayes_opt_iters = 100,
+  bayes_opt_batches = 1,
+  bayes_opt_iters_per_batch = 100,
+  bayes_opt_design_points_per_batch = min(4 * length(param_set$pars),
+    bayes_opt_iters_per_batch),
   bayes_opt_print = FALSE,
+  extra_objective_term = NULL,
   ...
 )
 }
@@ -104,17 +108,30 @@ upper bound to \code{importance_lower}.}
 the importance distribution, and subsequently used to evalute the
 discrepancy intergral.}
 
-\item{bayes_opt_iters}{Numeric: Number of iterations of Bayesian optimisation
-to use. Passed to \code{\link[mlrMBO]{setMBOControlTermination}} as
-\code{iters}.}
+\item{bayes_opt_batches}{Numeric: Number of batches to run the Bayesian
+optimisation algorithm for. Minimum 1.}
+
+\item{bayes_opt_iters_per_batch}{Numeric: Number of iterations of Bayesian
+optimisation to use per batch. Passed to
+\code{\link[mlrMBO]{setMBOControlTermination}} as \code{iters}.}
+
+\item{bayes_opt_design_points_per_batch}{Numeric: Number of points from
+previous batch to carry forward into the next batch. Points are selected by
+sampling, with weights proportional to the value of the objective function
+at each point.}
 
 \item{bayes_opt_print}{Boolean: if \code{TRUE}, print the progress/status
 from \code{\link[mlrMBO]{mbo}}. Defaults to \code{FALSE}.}
 
+\item{extra_objective_term}{Function: univariate real-value function that
+takes \code{lambda} as an argument and the result is added on to the
+objective function.}
+
 \item{...}{Currently unused.}
 }
 \value{
-An \code{\link[mlrMBO]{MBOSingleObjResult}}.
+A list of length \code{bayes_opt_batches}, with each element being a
+\code{\link[mlrMBO]{MBOSingleObjResult}}.
 }
 \description{
 \code{pbbo}: prior by Bayesian optimisation
@@ -150,7 +167,7 @@ pbbo(
   param_set = param_set,
   n_internal_prior_draws = 750,
   n_internal_importance_draws = 200,
-  bayes_opt_iters = 50,
+  bayes_opt_iters_per_batch = 50,
   bayes_opt_print = FALSE
 )}
 }

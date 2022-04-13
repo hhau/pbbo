@@ -33,7 +33,7 @@ test_that('main function can run error free', {
     bayes_opt_print = FALSE
   ))
 
-  expect_s3_class(mlr_res, class = 'MBOSingleObjResult')
+  expect_s3_class(mlr_res[[1]], class = 'MBOSingleObjResult')
 })
 
 test_that('bad args give errors', {

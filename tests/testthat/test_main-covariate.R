@@ -32,12 +32,12 @@ test_that('main function with covariates can run error free', {
       param_set = param_set,
       n_internal_prior_draws = 20,
       n_internal_importance_draws = 50,
-      bayes_opt_iters = 3,
+      bayes_opt_iters_per_batch = 3,
       bayes_opt_print = FALSE
     )
   )
 
-  expect_s3_class(mlr_res, class = 'MBOSingleObjResult')
+  expect_s3_class(mlr_res[[1]], class = 'MBOSingleObjResult')
 })
 
 test_that('bad covariate args cause an error', {
@@ -53,7 +53,7 @@ test_that('bad covariate args cause an error', {
       param_set = param_set,
       n_internal_prior_draws = 20,
       n_internal_importance_draws = 50,
-      bayes_opt_iters = 3,
+      bayes_opt_iters_per_batch = 3,
       bayes_opt_print = FALSE
     )
   )

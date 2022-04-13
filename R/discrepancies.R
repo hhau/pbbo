@@ -104,11 +104,12 @@ build_discrep_covariate <- function(
     inner_res <- lapply(discrep_list, function(sub_discrep) {
       sub_discrep(lambda)
     }) %>%
-      unlist() %>%
-      sum() # assumes log discrepancy values are returned
+      unlist()
 
-    # This scaling might be important for interpreting the function later.
-    return((1 / n_covariate_obs) * inner_res)
+    # switch to taking the mean of the total discrep, so the logSumExp of the
+    # log total discrep.
+    total_discrep <- -log(n_covariate_obs) + matrixStats::logSumExp(inner_res)
+    return(total_discrep)
   }
 
   return(full_discrep)

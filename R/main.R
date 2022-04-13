@@ -67,17 +67,24 @@
 #' @param n_internal_importance_draws Numeric: Number of draws to generate from
 #'   the importance distribution, and subsequently used to evalute the
 #'   discrepancy intergral.
-#' @param bayes_opt_iters Numeric: Number of iterations of Bayesian optimisation
-#'   to use. Passed to \code{\link[mlrMBO]{setMBOControlTermination}} as
-#'   \code{iters}.
+#' @param bayes_opt_batches Numeric: Number of batches to run the Bayesian
+#'   optimisation algorithm for. Minimum 1.
+#' @param bayes_opt_iters_per_batch Numeric: Number of iterations of Bayesian
+#'   optimisation to use per batch. Passed to
+#'   \code{\link[mlrMBO]{setMBOControlTermination}} as \code{iters}.
+#' @param bayes_opt_design_points_per_batch Numeric: Number of points from
+#'   previous batch to carry forward into the next batch. Points are selected by
+#'   sampling, with weights proportional to the value of the objective function
+#'   at each point.
 #' @param bayes_opt_print Boolean: if \code{TRUE}, print the progress/status
-#' from \code{\link[mlrMBO]{mbo}}. Defaults to \code{FALSE}.
+#'   from \code{\link[mlrMBO]{mbo}}. Defaults to \code{FALSE}.
 #' @param extra_objective_term Function: univariate real-value function that
-#' takes \code{lambda} as an argument and the result is added on to the
-#' objective function.
+#'   takes \code{lambda} as an argument and the result is added on to the
+#'   objective function.
 #' @param ... Currently unused.
 #'
-#' @return An \code{\link[mlrMBO]{MBOSingleObjResult}}.
+#' @return A list of length \code{bayes_opt_batches}, with each element being a
+#'   \code{\link[mlrMBO]{MBOSingleObjResult}}.
 #' @export
 #'
 #' @examples
@@ -111,7 +118,7 @@
 #'   param_set = param_set,
 #'   n_internal_prior_draws = 750,
 #'   n_internal_importance_draws = 200,
-#'   bayes_opt_iters = 50,
+#'   bayes_opt_iters_per_batch = 50,
 #'   bayes_opt_print = FALSE
 #' )}
 pbbo <- function(
@@ -128,7 +135,9 @@ pbbo <- function(
   importance_lower = NULL,
   importance_upper = NULL,
   n_internal_importance_draws = 100,
-  bayes_opt_iters = 100,
+  bayes_opt_batches = 1,
+  bayes_opt_iters_per_batch = 100,
+  bayes_opt_design_points_per_batch = min(4 * length(param_set$pars), bayes_opt_iters_per_batch),
   bayes_opt_print = FALSE,
   extra_objective_term = NULL,
   ...
@@ -142,8 +151,11 @@ pbbo <- function(
     is.numeric(n_internal_prior_draws),
     is.numeric(n_internal_importance_draws),
     1 < n_internal_prior_draws,
-    importance_method %in% c('uniform'),
-    1 < n_internal_importance_draws
+    importance_method %in% c('uniform', 'gamma_mixture', 'student_t_mixture'),
+    is.numeric(bayes_opt_iters_per_batch),
+    1 < bayes_opt_iters_per_batch,
+    1 < n_internal_importance_draws,
+    1 <= bayes_opt_batches
   )
 
   if (is.function(discrepancy)) {
@@ -211,8 +223,21 @@ pbbo <- function(
       #final.evals = 5
     ) %>%
       mlrMBO::setMBOControlInfill(opt = 'nsga2') %>%
-      mlrMBO::setMBOControlTermination(iters = bayes_opt_iters) %>%
+      mlrMBO::setMBOControlTermination(iters = bayes_opt_iters_per_batch) %>%
       mlrMBO::setMBOControlMultiObj(method = "mspot")
+
+      if (bayes_opt_batches == 1) {
+        res <- mlrMBO::mbo(
+          fun = objective_function,
+          design = initial_points_to_eval,
+          control = control_obj,
+          show.info = bayes_opt_print
+        )
+
+        return(res)
+      } else {
+        stop("Batching not yet implemented for multiple objectives")
+      }
   } else {
     objective_function <- smoof::makeSingleObjectiveFunction(
       name = model_name,
@@ -223,15 +248,59 @@ pbbo <- function(
     )
 
     control_obj <- mlrMBO::makeMBOControl(final.method = 'best.predicted') %>%
-      mlrMBO::setMBOControlTermination(iters = bayes_opt_iters)
+      mlrMBO::setMBOControlTermination(iters = bayes_opt_iters_per_batch)
+
+    if (!is.null(initial_points_to_eval)) {
+      if (initial_points_to_eval$y == NULL) {
+        futile.logger::flog.info("Evaluating initial points")
+        initial_points_to_eval$y <- apply(initial_points_to_eval, 1, function(x) {
+          discrep_partial(unlist(x))
+        })
+      }
+    }
   }
 
-  res <- mlrMBO::mbo(
-    fun = objective_function,
-    design = initial_points_to_eval,
-    control = control_obj,
-    show.info = bayes_opt_print
-  )
+  full_batch_res <- list()
+  for (batch_num in seq_len(bayes_opt_batches)) {
+    futile.logger::flog.info("Starting batch %d", batch_num)
+    if (batch_num == 1) {
+      batch_design <- initial_points_to_eval
+    } else {
+      # get the result object from the previous batch
+      prev_batch_path <- full_batch_res[[batch_num - 1]][["opt.path"]] %>%
+        as.data.frame()
 
-  return(res)
+      log_raw_weights <- -exp(prev_batch_path$y)
+      stopifnot(any(!is.na(log_raw_weights)))
+      weights <- exp(log_raw_weights - matrixStats::logSumExp(log_raw_weights))
+      prev_batch_indices <- sample(
+        x = 1 : nrow(prev_batch_path),
+        size = bayes_opt_design_points_per_batch,
+        replace = FALSE,
+        prob = weights
+      )
+
+      batch_design <- prev_batch_path[
+        prev_batch_indices,
+        c(names(param_set$pars), "y")
+      ]
+    }
+
+    batch_mbo_res <- mlrMBO::mbo(
+      fun = objective_function,
+      design = batch_design,
+      control = control_obj,
+      show.info = bayes_opt_print
+    )
+
+    futile.logger::flog.info(
+      "Best y at end of batch %d is %f",
+      batch_num,
+      batch_mbo_res$y
+    )
+
+    full_batch_res[[batch_num]] <- batch_mbo_res
+  }
+
+  return(full_batch_res)
 }

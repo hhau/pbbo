@@ -130,8 +130,8 @@ make_params_mix_gamma <- function(
 ) {
   mean_s1 <- mean(sample_one)
   mean_s2 <- mean(sample_two)
-  var_s1 <- (sd_multiplier ^ 2) * var(sample_one)
-  var_s2 <- (sd_multiplier ^ 2) * var(sample_two)
+  var_s1 <- min((sd_multiplier ^ 2) * var(sample_one), 1e5)
+  var_s2 <- min((sd_multiplier ^ 2) * var(sample_two), 1e5)
   mix_weight <- length(sample_one) / (length(sample_one) + length(sample_two))
 
   params <- list(
