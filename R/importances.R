@@ -152,11 +152,7 @@ make_params_mix_gamma <- function(
   return(params)
 }
 
-density_mix_gamma <- function(
-  x,
-  params,
-  log_scale = FALSE
-) {
+density_mix_gamma <- function(x, params, log_scale = FALSE) {
   log_dens_vals <- matrix(data = NA, nrow = length(x), ncol = 2)
   log_dens_vals[, 1] <- log(params$mix_weight) +
     dgamma(
@@ -183,10 +179,7 @@ density_mix_gamma <- function(
   }
 }
 
-sample_mix_gamma <- function(
-  n,
-  params
-) {
+sample_mix_gamma <- function(n, params, numerical_lb = 1e-12) {
   samples_per_component <- as.numeric(table(sample(
     x = c(1, 2),
     size = n,
@@ -206,12 +199,58 @@ sample_mix_gamma <- function(
     rate = params$rate_1
   )
 
+  if (any(points_one < numerical_lb)) {
+    points_one <- resample_gamma(
+      sample = points_one,
+      shape = params$shape_1,
+      rate = params$rate_1,
+      numerical_lb = numerical_lb
+    )
+  }
+
   points_two <- rgamma(
     n = samples_per_component[2],
     shape = params$shape_2,
     rate = params$rate_2
   )
 
+  if (any(points_two < numerical_lb)) {
+    points_two <- resample_gamma(
+      sample = points_two,
+      shape = params$shape_2,
+      rate = params$rate_2,
+      numerical_lb = numerical_lb
+    )
+  }
+
   res <- c(points_one, points_two)
+  return(res)
+}
+
+resample_gamma <- function(sample, shape, rate, numerical_lb) {
+  futile.logger::flog.info(
+    "gamma_mixture resampling triggered. hopefully this just an issue with the
+    early stage numerics. If this warning occurs in the late stages of
+    optimisation, then results are probably invalid."
+  )
+
+  n_target <- length(sample)
+  n_invalid <- sum(sample < numerical_lb)
+  valid_samples <- sample[sample > numerical_lb]
+
+  extra_samples <- rgamma(
+    n = n_invalid * 5,
+    shape = shape,
+    rate = rate
+  )
+
+  valid_extras <- extra_samples[extra_samples > numerical_lb]
+
+  if (length(valid_extras) < n_invalid) {
+    stop("Something is very wrong with the numerics for this problem.")
+  }
+
+  final_extras <- sample(x = valid_extras, size = n_invalid, replace = FALSE)
+  res <- c(valid_samples, final_extras)
   return(res)
 }
