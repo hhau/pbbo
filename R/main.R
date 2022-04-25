@@ -29,23 +29,23 @@
 #'   \code{prior_predictive_sampler} as \code{c(lambda['mu1'], lambda['mu2'],
 #'   lambda['sigma'])}.
 #' @param covariate_values An optional vector or matrix/data.frame of covariate
-#'   values: \bold{including covariate values changes the signautres required
+#'   values: \bold{including covariate values changes the signatures required
 #'   for} \code{target_lcdf}, \code{target_sampler}, \bold{and}
 #'   \code{prior_predictive_sampler}. Each of these function must take an
-#'   additional third argument, perhaps called \code{cov}, that ditates the
+#'   additional third argument, perhaps called \code{cov}, that dictates the
 #'   behaviour of the function at a specific covariate value, i.e. value in the
 #'   covariate vector or row in the covariate matrix.
 #' @param discrepancy String (or Function): One of either \code{'log_cvm'} or
 #'   \code{'log_ad'} for Cramér–von Mises (default) or Anderson–Darling distance
-#'   respectively. The latter is currenly unsupported as it is too numerically
+#'   respectively. The latter is currently unsupported as it is too numerically
 #'   difficult to compute accurately. Alternatively, one can supply a function
-#'   with thesignature \code{function(cdf_1, cdf_2, points, weights)}, where the
-#'   first two arguments are (E)CDF functions, \code{points} is a vector of
+#'   with the signature \code{function(cdf_1, cdf_2, points, weights)}, where
+#'   the first two arguments are (E)CDF functions, \code{points} is a vector of
 #'   evaluation points, and \code{weights} is the corresponding vector of
 #'   importance weights.
 #' @param initial_points_to_eval \code{data.frame}: A data.frame of points at
 #'   which one might wish to evaluate the discrepancy function at initially. The
-#'   colums of this data.farme must match the names as described by
+#'   columns of this data.frame must match the names as described by
 #'   \code{param_set}, and include a column called \code{y}, which may be full
 #'   of \code{NA}s if the discrepancy has not been evaluated at the points.
 #'   Defaults to \code{NULL}.
