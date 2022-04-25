@@ -6,7 +6,10 @@ sample_two <- rgamma(n = 100, shape = 5, rate = 1.2)
 gamma_importance_res <- gamma_mixture_importance(
   sample_one = sample_one,
   sample_two = sample_two,
-  n_internal_importance_draws = n_internal_importance_draws
+  n_internal_importance_draws = n_internal_importance_draws,
+  importance_args = list(
+    gamma_sd_multiplier = 1.05
+  )
 )
 
 test_that("gamma importance result is correct shape with valid entries", {

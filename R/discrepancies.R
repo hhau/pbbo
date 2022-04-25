@@ -5,8 +5,7 @@ build_discrep <- function(
   internal_discrepancy_f,
   n_internal_prior_draws,
   importance_method,
-  importance_lower,
-  importance_upper,
+  importance_args,
   n_internal_importance_draws
 ) {
   # will return a function f(lambda) that evaluates the discrepancy
@@ -51,8 +50,7 @@ build_discrep <- function(
       sample_one = prior_sample,
       sample_two = target_sample,
       n_internal_importance_draws = n_internal_importance_draws,
-      lower = importance_lower,
-      upper = importance_upper
+      importance_args = importance_args
     )
 
     internal_result <- internal_discrepancy_f(
@@ -76,8 +74,7 @@ build_discrep_covariate <- function(
   internal_discrepancy_f,
   n_internal_prior_draws,
   importance_method,
-  importance_lower,
-  importance_upper,
+  importance_args,
   n_internal_importance_draws
 ) {
   n_covariate_obs <- length(covariate_list)
@@ -94,8 +91,7 @@ build_discrep_covariate <- function(
       internal_discrepancy_f = internal_discrepancy_f,
       n_internal_prior_draws = round(n_internal_prior_draws / n_covariate_obs),
       importance_method = importance_method,
-      importance_lower = importance_lower,
-      importance_upper = importance_upper,
+      importance_args = importance_args,
       n_internal_importance_draws = round(n_internal_importance_draws / n_covariate_obs)
     )
   })

@@ -21,8 +21,10 @@ test_discrepancy <- build_discrep(
   internal_discrepancy_f = internal_discrepancy_f,
   n_internal_prior_draws = 500,
   importance_method = 'uniform',
-  importance_lower = NULL,
-  importance_upper = NULL,
+  importance_args = list(
+    uniform_lower = NULL,
+    uniform_upper = NULL
+  ),
   n_internal_importance_draws = 200
 )
 
@@ -49,8 +51,10 @@ ad_test_discrepancy <- build_discrep(
   internal_discrepancy_f = pbbo:::log_ad_discrepancy,
   n_internal_prior_draws = 5e3,
   importance_method = 'uniform',
-  importance_lower = NULL,
-  importance_upper = NULL,
+  importance_args = list(
+    uniform_lower = NULL,
+    uniform_upper = NULL
+  ),
   n_internal_importance_draws = 500
 )
 

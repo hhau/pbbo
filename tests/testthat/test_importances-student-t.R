@@ -6,7 +6,10 @@ sample_two <- 20 + rt(n = 300, df = 8) * 8
 student_t_importance_res <- student_t_mixture_importance(
   sample_one = sample_one,
   sample_two = sample_two,
-  n_internal_importance_draws = n_internal_importance_draws
+  n_internal_importance_draws = n_internal_importance_draws,
+  importance_args = list(
+    student_t_sd_multiplier = 1.05
+  )
 )
 
 test_that("student_t importance result is correct shape with valid entries", {

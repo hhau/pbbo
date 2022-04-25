@@ -53,20 +53,33 @@
 #'   prior predictive distribution for the given value of \code{lambda} in each
 #'   of the optimisation iterations. More draws result in better estimates of
 #'   the ECDF.
-#' @param importance_method String: Defaults to \code{'uniform'}. Perhaps in the
-#'   future this will allow one to adjust the type of importance sampling use to
-#'   compute the discrepancy function.
-#' @param importance_lower Numeric: Defaults to \code{NULL}. The default
-#'   'uniform' Importance sampling method sets the lower bound of the uniform
-#'   importance distribution to be \code{min(sample_from_target,
-#'   sample_from_current_prior_predictive)}. If you wish to set this lower bound
-#'   manually, perhaps if the draws from the  prior predictive distribution have
-#'   a compact support, then set \code{importance_lower} to a specific value
-#' @param importance_upper Numeric: Defaults to \code{NULL}. Corresponding
-#'   upper bound to \code{importance_lower}.
+#' @param importance_method String: Defaults to \code{'uniform'}. Specifies
+#'   which importance sampling method should be used. Options include \code{
+#'   gamma_mixture} for data on the positive real numbers and \code{
+#'   student_t_mixture} for data on the whole real line.
+#' @param importance_args List: Additional optional arguments to the importance
+#'   functions. These should be in the form of \code{importance_param}, e.g.
+#'   \code{uniform_lower} to set the lower bound for the uniform importance
+#'   method. Possible arguments include:
+#'   \itemize{
+#'     \item{\code{uniform_lower}} {Left as NULL (the default) the lower bound of the
+#'     uniform importance distribution is set to be \code{min(sample_from_target
+#'     , sample_from_current_prior_predictive)}. If you wish to set this lower
+#'     bound manually, perhaps if the draws from the prior predictive
+#'     distribution have a compact support, then set \code{uniform_lower} to a
+#'     specific value}
+#'     \item{\code{uniform_upper}}{Corresponding upper bound to \code{
+#'     uniform_lower}}
+#'     \item{\code{gamma_sd_multiplier}}{Constant with which to multiply the
+#'     estimated standard deviations for each of the mixture components. Can
+#'     help in ensuring the tails are sufficiently heavy.}
+#'     \item{\code{student_t_multiplier}}{Same purpose as \code{
+#'     gamma_sd_multiplier} but for the mixture of student-t densities
+#'     importance.}
+#'   }
 #' @param n_internal_importance_draws Numeric: Number of draws to generate from
-#'   the importance distribution, and subsequently used to evalute the
-#'   discrepancy intergral.
+#'   the importance distribution, and subsequently used to evaluate the
+#'   discrepancy integral.
 #' @param bayes_opt_batches Numeric: Number of batches to run the Bayesian
 #'   optimisation algorithm for. Minimum 1.
 #' @param bayes_opt_iters_per_batch Numeric: Number of iterations of Bayesian
@@ -132,8 +145,12 @@ pbbo <- function(
   initial_points_to_eval = NULL,
   n_internal_prior_draws = 250,
   importance_method = 'uniform',
-  importance_lower = NULL,
-  importance_upper = NULL,
+  importance_args = list(
+    uniform_lower = NULL,
+    uniform_upper = NULL,
+    gamma_sd_multiplier = 1.05,
+    student_t_sd_multiplier = 1.05
+  ),
   n_internal_importance_draws = 100,
   bayes_opt_batches = 1,
   bayes_opt_iters_per_batch = 100,
@@ -188,8 +205,7 @@ pbbo <- function(
       internal_discrepancy_f = internal_discrepancy_f,
       n_internal_prior_draws = n_internal_prior_draws,
       importance_method = importance_method,
-      importance_lower = importance_lower,
-      importance_upper = importance_upper,
+      importance_args = importance_args,
       n_internal_importance_draws = n_internal_importance_draws
     )
   } else {
@@ -200,8 +216,7 @@ pbbo <- function(
       internal_discrepancy_f = internal_discrepancy_f,
       n_internal_prior_draws = n_internal_prior_draws,
       importance_method = importance_method,
-      importance_lower = importance_lower,
-      importance_upper = importance_upper,
+      importance_args = importance_args,
       n_internal_importance_draws = n_internal_importance_draws
     )
   }

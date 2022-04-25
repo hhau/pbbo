@@ -4,10 +4,12 @@ uniform_importance <- function(
   sample_one,
   sample_two,
   n_internal_importance_draws,
-  lower,
-  upper,
+  importance_args,
   ...
 ) {
+  lower <- importance_args$uniform_lower
+  upper <- importance_args$uniform_upper
+
   if (is.null(lower)) {
     lower <- min(c(sample_one, sample_two))
   }
@@ -31,9 +33,15 @@ student_t_mixture_importance <- function(
   sample_one,
   sample_two,
   n_internal_importance_draws,
+  importance_args,
   ...
 ) {
-  params <- make_params_mix_student_t(sample_one, sample_two)
+  stopifnot(!is.null(importance_args$student_t_sd_multiplier))
+  params <- make_params_mix_student_t(
+    sample_one = sample_one,
+    sample_two = sample_two,
+    sd_multiplier = importance_args$student_t_sd_multiplier
+  )
   points <- sample_mix_student_t(n = n_internal_importance_draws, params)
   weights <- density_mix_student_t(points, params)
   res <- list(points = points, weights = weights)
@@ -43,7 +51,7 @@ student_t_mixture_importance <- function(
 make_params_mix_student_t <- function(
   sample_one,
   sample_two,
-  sd_multiplier = 1.05
+  sd_multiplier
 ) {
   mean_s1 <- mean(sample_one)
   mean_s2 <- mean(sample_two)
@@ -114,9 +122,15 @@ gamma_mixture_importance <- function(
   sample_one,
   sample_two,
   n_internal_importance_draws,
+  importance_args,
   ...
 ) {
-  params <- make_params_mix_gamma(sample_one, sample_two)
+  stopifnot(!is.null(importance_args$gamma_sd_multiplier))
+  params <- make_params_mix_gamma(
+    sample_one = sample_one,
+    sample_two = sample_two,
+    sd_multiplier = importance_args$gamma_sd_multiplier
+  )
   points <- sample_mix_gamma(n = n_internal_importance_draws, params)
   weights <- density_mix_gamma(points, params)
   res <- list(points = points, weights = weights)
@@ -126,7 +140,7 @@ gamma_mixture_importance <- function(
 make_params_mix_gamma <- function(
   sample_one,
   sample_two,
-  sd_multiplier = 1.05
+  sd_multiplier
 ) {
   mean_s1 <- mean(sample_one)
   mean_s2 <- mean(sample_two)
