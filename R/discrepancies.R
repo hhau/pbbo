@@ -8,10 +8,6 @@ build_discrep <- function(
   importance_args,
   n_internal_importance_draws
 ) {
-  # will return a function f(lambda) that evaluates the discrepancy
-  # given a certain value of lambda.
-
-  # this may need to be inside the function for dispatch to work.
   local_importance <- get(
     paste0(importance_method, "_importance"),
     envir = environment(pbbo)
@@ -40,12 +36,7 @@ build_discrep <- function(
     )
 
     prior_ecdf <- ecdf(prior_sample)
-
-    # ideally one could use the samples from the other prior to figure out the
-    # range of the target prior, but that seems impossible in general,
-    # so for the momemt we just require a target_sampler.
     target_sample <- target_sampler(n_internal_prior_draws)
-
     importance_draws <- local_importance(
       sample_one = prior_sample,
       sample_two = target_sample,
@@ -176,9 +167,3 @@ log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
   final_res <- -log_n + log_res
   return(as.numeric(final_res))
 }
-
-# other functions from @drovandi_comparions_2021? MMD+Laplace, Wasserstein
-# these do not require the importance sampling approach, as they are entirely
-# sample specific.
-# in fact, we could alternate depending on which of target_lcdf or target_sampler
-# was provided
