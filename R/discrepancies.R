@@ -25,14 +25,14 @@ build_discrep <- function(
         names = names(lambda_mlrform),
         vals = as.numeric(lambda_mlrform)
       ) %>%
-        tidyr::unite(col = res, sep = ': ') %>%
-        magrittr::extract2('res') %>%
-        paste0(collapse = ', ')
+        tidyr::unite(col = res, sep = ": ") %>%
+        magrittr::extract2("res") %>%
+        paste0(collapse = ", ")
     )
 
     futile.logger::flog.trace(
       "prior_sample contains: %s",
-      paste(format(prior_sample, digits = 2), collapse = ', ')
+      paste(format(prior_sample, digits = 2), collapse = ", ")
     )
 
     prior_ecdf <- ecdf(prior_sample)
@@ -123,12 +123,12 @@ log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
 
   futile.logger::flog.trace(
     "points contains: %s",
-    paste(format(points, digits = 4), collapse = ', ')
+    paste(format(points, digits = 4), collapse = ", ")
   )
 
   futile.logger::flog.trace(
     "log_vals_2 contains: %s",
-    paste(format(log_vals_2, digits = 4), collapse = ', ')
+    paste(format(log_vals_2, digits = 4), collapse = ", ")
   )
 
   stopifnot(
@@ -161,7 +161,7 @@ log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
   # high prec is supposed to get around that.
   futile.logger::flog.trace(
     "log_vals_2 contains: %s",
-    paste(format(log_vals_2, digits = 4), collapse = ', ')
+    paste(format(log_vals_2, digits = 4), collapse = ", ")
   )
 
   stopifnot(all(log_vals_2 <= 0))

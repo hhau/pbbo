@@ -128,7 +128,6 @@ resample_gamma <- function(sample, shape, rate, numerical_lb) {
     optimisation, then results are probably invalid."
   )
 
-  n_target <- length(sample)
   n_invalid <- sum(sample < numerical_lb)
   valid_samples <- sample[sample > numerical_lb]
 

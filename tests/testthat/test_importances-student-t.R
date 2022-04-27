@@ -38,12 +38,14 @@ test_that("student_t importance result is correct shape with valid entries", {
   }
 })
 
-test_that("student_t importance 'weights' are all less than 1 for wide target", {
-  if (requireNamespace("checkmate", quietly = TRUE)) {
-    checkmate::expect_numeric(
-      x = student_t_importance_res$weights,
-      lower = 0, # at the moment these aren't weights, but rather density values
-      upper = 1
-    )
+test_that(
+  "student_t importance 'weights' are all less than 1 for wide target", {
+    if (requireNamespace("checkmate", quietly = TRUE)) {
+      checkmate::expect_numeric(
+        x = student_t_importance_res$weights,
+        lower = 0, # at the moment these are density values
+        upper = 1
+      )
+    }
   }
-})
+)

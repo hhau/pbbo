@@ -10,22 +10,22 @@ target_sampler <- function(n) {
 }
 
 prior_predictive_sampler <- function(n, lambda) {
-  rnorm(n = n, mean = lambda['mu'], sd = lambda['sigma'])
+  rnorm(n = n, mean = lambda["mu"], sd = lambda["sigma"])
 }
 
 param_set <- makeParamSet(
-  makeNumericParam(id = 'mu', default = 0.2, lower = -50, upper = 50),
-  makeNumericParam(id = 'sigma', lower = 0, upper = 20, default = 0.2)
+  makeNumericParam(id = "mu", default = 0.2, lower = -50, upper = 50),
+  makeNumericParam(id = "sigma", lower = 0, upper = 20, default = 0.2)
 )
 
 ## actual tests
-test_that('main function can run error free', {
+test_that("main function can run error free", {
   mlr_res <- suppressWarnings(pbbo(
-    model_name = 'test_normal',
+    model_name = "test_normal",
     target_lcdf = target_lcdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
-    discrepancy = 'log_cvm',
+    discrepancy = "log_cvm",
     param_set = param_set,
     n_internal_prior_draws = 20,
     n_internal_importance_draws = 10,
@@ -33,16 +33,16 @@ test_that('main function can run error free', {
     bayes_opt_print = FALSE
   ))
 
-  expect_s3_class(mlr_res[[1]], class = 'MBOSingleObjResult')
+  expect_s3_class(mlr_res[[1]], class = "MBOSingleObjResult")
 })
 
-test_that('bad args give errors', {
+test_that("bad args give errors", {
   expect_error(suppressWarnings(pbbo(
-    model_name = 'test_normal',
+    model_name = "test_normal",
     target_lcdf = target_lcdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
-    discrepancy = 'definitely_not_a_discrep',
+    discrepancy = "definitely_not_a_discrep",
     param_set = param_set
   )))
 })

@@ -7,7 +7,7 @@ target_sampler <- function(n) {
 }
 
 prior_predictive_sampler <- function(n, lambda) {
-  rnorm(n = n, mean = lambda['mu'], sd = lambda['sigma'])
+  rnorm(n = n, mean = lambda["mu"], sd = lambda["sigma"])
 }
 
 test_lambda <- c(mu = 1, sigma = 2.5)
@@ -20,7 +20,7 @@ test_discrepancy <- build_discrep(
   prior_predictive_sampler = prior_predictive_sampler,
   internal_discrepancy_f = internal_discrepancy_f,
   n_internal_prior_draws = 500,
-  importance_method = 'uniform',
+  importance_method = "uniform",
   importance_args = list(
     uniform_lower = NULL,
     uniform_upper = NULL
@@ -30,7 +30,7 @@ test_discrepancy <- build_discrep(
 
 test_val <- test_discrepancy(lambda_mlrform = test_lambda)
 
-test_that('log_cvm discrep + uniform importance yields sensible result', {
+test_that("log_cvm discrep + uniform importance yields sensible result", {
   expect_true(is.numeric(test_val))
   expect_true((test_val > -5e3) & (test_val < 5e3))
 })
@@ -50,7 +50,7 @@ ad_test_discrepancy <- build_discrep(
   prior_predictive_sampler = prior_predictive_sampler,
   internal_discrepancy_f = pbbo:::log_ad_discrepancy,
   n_internal_prior_draws = 5e3,
-  importance_method = 'uniform',
+  importance_method = "uniform",
   importance_args = list(
     uniform_lower = NULL,
     uniform_upper = NULL
@@ -59,7 +59,7 @@ ad_test_discrepancy <- build_discrep(
 )
 
 ad_test_val <- ad_test_discrepancy(c(mu = 0, sigma = 6))
-test_that('log_ad discrep + uniform importance yields sensible result', {
+test_that("log_ad discrep + uniform importance yields sensible result", {
   expect_true(!is.nan(ad_test_val))
   expect_true(is.numeric(ad_test_val))
 })

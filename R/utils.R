@@ -14,7 +14,7 @@
 NULL
 
 matrixlike_to_rowlist <- function(x_mat) {
-  lapply(1 : nrow(x_mat), function (row_index) {
+  lapply(seq_len(nrow(x_mat)), function(row_index) {
     x_mat[row_index, ]
   })
 }

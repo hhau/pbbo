@@ -43,7 +43,7 @@
 #'   the first two arguments are (E)CDF functions, \code{points} is a vector of
 #'   evaluation points, and \code{weights} is the corresponding vector of
 #'   importance weights.
-#' @param initial_points_to_eval \code{data.frame}: A data.frame of points at
+#' @param initial_design \code{data.frame}: A data.frame of points at
 #'   which one might wish to evaluate the discrepancy function at initially. The
 #'   columns of this data.frame must match the names as described by
 #'   \code{param_set}, and include a column called \code{y}, which may be full
@@ -62,20 +62,21 @@
 #'   \code{uniform_lower} to set the lower bound for the uniform importance
 #'   method. Possible arguments include:
 #'   \itemize{
-#'     \item{\code{uniform_lower}} {Left as NULL (the default) the lower bound of the
-#'     uniform importance distribution is set to be \code{min(sample_from_target
-#'     , sample_from_current_prior_predictive)}. If you wish to set this lower
-#'     bound manually, perhaps if the draws from the prior predictive
-#'     distribution have a compact support, then set \code{uniform_lower} to a
-#'     specific value}
-#'     \item{\code{uniform_upper}}{Corresponding upper bound to \code{
-#'     uniform_lower}}
-#'     \item{\code{gamma_sd_multiplier}}{Constant with which to multiply the
-#'     estimated standard deviations for each of the mixture components. Can
-#'     help in ensuring the tails are sufficiently heavy.}
-#'     \item{\code{student_t_multiplier}}{Same purpose as \code{
-#'     gamma_sd_multiplier} but for the mixture of student-t densities
-#'     importance.}
+#'   \item{\code{uniform_lower}}
+#'   {Left as NULL (the default) the lower bound of the uniform importance
+#'   distribution is set to be \code{min(sample_from_target ,
+#'   sample_from_current_prior_predictive)}. If you wish to set this lower bound
+#'   manually, perhaps if the draws from the prior predictive distribution have
+#'   a compact support, then set \code{uniform_lower} to a specific value}
+#'   \item{\code{uniform_upper}}
+#'   {Corresponding upper bound to \code{
+#'   uniform_lower}} \item{\code{gamma_sd_multiplier}}{Constant with which to
+#'   multiply the estimated standard deviations for each of the mixture
+#'   components. Can help in ensuring the tails are sufficiently heavy.}
+#'   \item{\code{student_t_multiplier}}
+#'   {Same purpose as \code{
+#'   gamma_sd_multiplier} but for the mixture of student-t densities
+#'   importance.}
 #'   }
 #' @param n_internal_importance_draws Numeric: Number of draws to generate from
 #'   the importance distribution, and subsequently used to evaluate the
@@ -135,16 +136,16 @@
 #'   bayes_opt_print = FALSE
 #' )}
 pbbo <- function(
-  model_name = 'default',
+  model_name = "default",
   target_lcdf,
   target_sampler,
   prior_predictive_sampler,
   param_set,
   covariate_values = NULL,
-  discrepancy = 'log_cvm',
-  initial_points_to_eval = NULL,
+  discrepancy = "log_cvm",
+  initial_design = NULL,
   n_internal_prior_draws = 250,
-  importance_method = 'uniform',
+  importance_method = "uniform",
   importance_args = list(
     uniform_lower = NULL,
     uniform_upper = NULL,
@@ -154,7 +155,10 @@ pbbo <- function(
   n_internal_importance_draws = 100,
   bayes_opt_batches = 1,
   bayes_opt_iters_per_batch = 100,
-  bayes_opt_design_points_per_batch = min(4 * length(param_set$pars), bayes_opt_iters_per_batch),
+  bayes_opt_design_points_per_batch = min(
+    4 * length(param_set$pars),
+    bayes_opt_iters_per_batch
+  ),
   bayes_opt_print = FALSE,
   extra_objective_term = NULL,
   ...
@@ -164,11 +168,14 @@ pbbo <- function(
     is.function(target_sampler),
     is.function(prior_predictive_sampler),
     is.list(param_set),
-    discrepancy %in% c('log_ad', 'log_cvm') | is.function(discrepancy),
+    discrepancy %in% c("log_ad", "log_cvm") | is.function(discrepancy),
     is.numeric(n_internal_prior_draws),
     is.numeric(n_internal_importance_draws),
     1 < n_internal_prior_draws,
-    importance_method %in% c('uniform', 'gamma_mixture', 'student_t_mixture'),
+    importance_method %in% c(
+      "uniform", "gamma_mixture", "student_t_mixture", "surv_mixture"
+    ),
+    is.list(importance_args),
     is.numeric(bayes_opt_iters_per_batch),
     1 < bayes_opt_iters_per_batch,
     1 < n_internal_importance_draws,
@@ -178,7 +185,7 @@ pbbo <- function(
   if (is.function(discrepancy)) {
     internal_discrepancy_f <- discrepancy
   } else {
-    x <- paste0(discrepancy, '_discrepancy')
+    x <- paste0(discrepancy, "_discrepancy")
     internal_discrepancy_f <- get(x, envir = environment(pbbo))
   }
 
@@ -237,14 +244,14 @@ pbbo <- function(
       propose.points = 1,
       #final.evals = 5
     ) %>%
-      mlrMBO::setMBOControlInfill(opt = 'nsga2') %>%
+      mlrMBO::setMBOControlInfill(opt = "nsga2") %>%
       mlrMBO::setMBOControlTermination(iters = bayes_opt_iters_per_batch) %>%
       mlrMBO::setMBOControlMultiObj(method = "mspot")
 
       if (bayes_opt_batches == 1) {
         res <- mlrMBO::mbo(
           fun = objective_function,
-          design = initial_points_to_eval,
+          design = initial_design,
           control = control_obj,
           show.info = bayes_opt_print
         )
@@ -262,13 +269,13 @@ pbbo <- function(
       noisy = TRUE
     )
 
-    control_obj <- mlrMBO::makeMBOControl(final.method = 'best.predicted') %>%
+    control_obj <- mlrMBO::makeMBOControl(final.method = "best.predicted") %>%
       mlrMBO::setMBOControlTermination(iters = bayes_opt_iters_per_batch)
 
-    if (!is.null(initial_points_to_eval)) {
-      if (initial_points_to_eval$y == NULL) {
+    if (!is.null(initial_design)) {
+      if (is.null(initial_design$y)) {
         futile.logger::flog.info("Evaluating initial points")
-        initial_points_to_eval$y <- apply(initial_points_to_eval, 1, function(x) {
+        initial_design$y <- apply(initial_design, 1, function(x) {
           discrep_partial(unlist(x))
         })
       }
@@ -279,9 +286,8 @@ pbbo <- function(
   for (batch_num in seq_len(bayes_opt_batches)) {
     futile.logger::flog.info("Starting batch %d", batch_num)
     if (batch_num == 1) {
-      batch_design <- initial_points_to_eval
+      batch_design <- initial_design
     } else {
-      # get the result object from the previous batch
       prev_batch_path <- full_batch_res[[batch_num - 1]][["opt.path"]] %>%
         as.data.frame()
 
@@ -289,7 +295,7 @@ pbbo <- function(
       stopifnot(any(!is.na(log_raw_weights)))
       weights <- exp(log_raw_weights - matrixStats::logSumExp(log_raw_weights))
       prev_batch_indices <- sample(
-        x = 1 : nrow(prev_batch_path),
+        x = seq_len(nrow(prev_batch_path)),
         size = bayes_opt_design_points_per_batch,
         replace = FALSE,
         prob = weights
