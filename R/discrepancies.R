@@ -73,17 +73,29 @@ build_discrep_covariate <- function(
   discrep_list <- lapply(covariate_list, function(a_covariate_draw) {
     local_target_lcdf <- function(x) target_lcdf(x, a_covariate_draw)
     local_target_sampler <- function(n) target_sampler(n, a_covariate_draw)
-    local_pp_sampler <- function(n, l) prior_predictive_sampler(n, l, a_covariate_draw)
+    local_pp_sampler <- function(n, l) {
+      prior_predictive_sampler(n, l, a_covariate_draw)
+    }
+
+    local_prior_draws <- round(n_internal_prior_draws / n_covariate_obs)
+    local_importance_args <- c(
+      importance_args,
+      covariate_draw = list(a_covariate_draw)
+    )
+
+    local_importance_draws <- round(
+      n_internal_importance_draws / n_covariate_obs
+    )
 
     inner_discrep <- build_discrep(
       target_lcdf = local_target_lcdf,
       target_sampler = local_target_sampler,
       prior_predictive_sampler = local_pp_sampler,
       internal_discrepancy_f = internal_discrepancy_f,
-      n_internal_prior_draws = round(n_internal_prior_draws / n_covariate_obs),
+      n_internal_prior_draws = local_prior_draws,
       importance_method = importance_method,
-      importance_args = importance_args,
-      n_internal_importance_draws = round(n_internal_importance_draws / n_covariate_obs)
+      importance_args = local_importance_args,
+      n_internal_importance_draws = local_importance_draws
     )
   })
 
