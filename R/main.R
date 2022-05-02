@@ -150,7 +150,10 @@ pbbo <- function(
     uniform_lower = NULL,
     uniform_upper = NULL,
     gamma_sd_multiplier = 1.05,
-    student_t_sd_multiplier = 1.05
+    student_t_sd_multiplier = 1.05,
+    surv_mixture_sd_multiplier = 1.05,
+    surv_mixture_cont_frac = 0.95,
+    surv_mixture_cens_times = rep(NULL, length(covariate_values))
   ),
   n_internal_importance_draws = 100,
   bayes_opt_batches = 1,
