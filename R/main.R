@@ -252,18 +252,6 @@ pbbo <- function(
       mlrMBO::setMBOControlTermination(iters = bayes_opt_iters_per_batch) %>%
       mlrMBO::setMBOControlMultiObj(method = "mspot")
 
-      if (bayes_opt_batches == 1) {
-        res <- mlrMBO::mbo(
-          fun = objective_function,
-          design = initial_design,
-          control = control_obj,
-          show.info = bayes_opt_print
-        )
-
-        return(res)
-      } else {
-        stop("Batching not yet implemented for multiple objectives")
-      }
   } else {
     objective_function <- smoof::makeSingleObjectiveFunction(
       name = model_name,
@@ -275,13 +263,6 @@ pbbo <- function(
 
     control_obj <- mlrMBO::makeMBOControl(final.method = "best.predicted") %>%
       mlrMBO::setMBOControlTermination(iters = bayes_opt_iters_per_batch)
-
-    if (!is.null(initial_design) && is.null(initial_design$y)) {
-      futile.logger::flog.info("Evaluating initial points")
-      initial_design$y <- apply(initial_design, 1, function(x) {
-        discrep_partial(unlist(x))
-      })
-    }
   }
 
   full_batch_res <- list()
@@ -289,18 +270,31 @@ pbbo <- function(
     futile.logger::flog.info("Starting Bayes opt batch %d", batch_num)
     if (batch_num == 1) {
       batch_design <- initial_design
+
+      if (!is.null(extra_objective_term)) {
+        batch_design <- batch_design %>%
+          select(-y)
+      }
+
     } else {
       prev_batch_path <- full_batch_res[[batch_num - 1]][["opt.path"]] %>%
         as.data.frame()
 
       all_names <- colnames(prev_batch_path)
-      unneeded_cols <- c("dob", "eol", "error.message", "exec.time", "cb",
+      unneeded_cols <- c(
+        "dob", "eol", "error.message", "exec.time", "cb", "cb.y_1", "cb.y_2",
         "error.model", "train.time", "prop.type", "propose.time", "se", "mean",
-        "lambda")
+        "lambda", "hv.contr"
+      )
 
       design_col_names <- setdiff(all_names, unneeded_cols)
 
-      log_raw_weights <- -exp(prev_batch_path$y)
+      if (!is.null(extra_objective_term)) {
+        log_raw_weights <- -exp(prev_batch_path$y_1)
+      } else {
+        log_raw_weights <- -exp(prev_batch_path$y)
+      }
+
       stopifnot(any(!is.na(log_raw_weights)))
       weights <- exp(log_raw_weights - matrixStats::logSumExp(log_raw_weights))
       prev_batch_indices <- sample(
@@ -321,12 +315,6 @@ pbbo <- function(
       design = batch_design,
       control = control_obj,
       show.info = bayes_opt_print
-    )
-
-    futile.logger::flog.info(
-      "Best y at end of batch %d is %f",
-      batch_num,
-      batch_mbo_res$y
     )
 
     full_batch_res[[batch_num]] <- batch_mbo_res
