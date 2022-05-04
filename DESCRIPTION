@@ -32,4 +32,7 @@ Imports:
     matrixStats,
     tibble,
     stringr,
-    dplyr
+    dplyr,
+    ParamHelpers,
+    lhs,
+    nloptr

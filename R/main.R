@@ -43,6 +43,10 @@
 #'   the first two arguments are (E)CDF functions, \code{points} is a vector of
 #'   evaluation points, and \code{weights} is the corresponding vector of
 #'   importance weights.
+#' @param n_crs2_iters Numeric: Number of iterations to run the CRS2 algorithm
+#'   from \code{\link[nloptr]{nloptr}}. These are used to initialise the Bayes
+#'   Opt stages, as it can be better at finding global minima. It only handles
+#'   single objectives, so it does not include the \code{extra_objective_term}.
 #' @param n_internal_prior_draws Numeric: Number of draws to generate from the
 #'   prior predictive distribution for the given value of \code{lambda} in each
 #'   of the optimisation iterations. More draws result in better estimates of
@@ -272,8 +276,7 @@ pbbo <- function(
       batch_design <- initial_design
 
       if (!is.null(extra_objective_term)) {
-        batch_design <- batch_design %>%
-          select(-y)
+        batch_design <- subset(batch_design, select = -y)
       }
 
     } else {

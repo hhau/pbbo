@@ -40,7 +40,7 @@ test_that("main with multiple objectives can run error free", {
     extra_objective_term = extra_term
   ))
 
-  expect_s3_class(mlr_res[[1]], class = "MBOSingleObjResult")
+  expect_s3_class(mlr_res[[1]], class = "MBOMultiObjResult")
 })
 
 
@@ -61,5 +61,5 @@ test_that("main with multiple objectives _and batches_ can run error free", {
     extra_objective_term = extra_term
   ))
 
-  expect_s3_class(mlr_res[[1]], class = "MBOSingleObjResult")
+  expect_s3_class(mlr_res[[1]], class = "MBOMultiObjResult")
 })

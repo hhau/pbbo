@@ -13,7 +13,7 @@ pbbo(
   param_set,
   covariate_values = NULL,
   discrepancy = "log_cvm",
-  initial_design = NULL,
+  n_crs2_iters = 2000,
   n_internal_prior_draws = 250,
   importance_method = "uniform",
   importance_args = list(uniform_lower = NULL, uniform_upper = NULL,
@@ -80,12 +80,10 @@ the first two arguments are (E)CDF functions, \code{points} is a vector of
 evaluation points, and \code{weights} is the corresponding vector of
 importance weights.}
 
-\item{initial_design}{\code{data.frame}: A data.frame of points at
-which one might wish to evaluate the discrepancy function at initially. The
-columns of this data.frame must match the names as described by
-\code{param_set}, and include a column called \code{y}, which may be full
-of \code{NA}s if the discrepancy has not been evaluated at the points.
-Defaults to \code{NULL}.}
+\item{n_crs2_iters}{Numeric: Number of iterations to run the CRS2 algorithm
+from \code{\link[nloptr]{nloptr}}. These are used to initialise the Bayes
+Opt stages, as it can be better at finding global minima. It only handles
+single objectives, so it does not include the \code{extra_objective_term}.}
 
 \item{n_internal_prior_draws}{Numeric: Number of draws to generate from the
 prior predictive distribution for the given value of \code{lambda} in each
