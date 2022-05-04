@@ -1,6 +1,4 @@
-# This might be a poor idea? As it effectively truncates the integral to
-# the values spanned by [lower, upper]. Empirically this works fine, just
-# inefficient (high variance) when samples disagree a lot.
+#' @importFrom stats runif
 uniform_importance <- function(
   sample_one,
   sample_two,

@@ -1,3 +1,4 @@
+#' @importFrom stats dt rt var sd
 student_t_mixture_importance <- function(
   sample_one,
   sample_two,

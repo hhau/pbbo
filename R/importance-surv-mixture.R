@@ -1,3 +1,4 @@
+#' @importFrom stats rbeta dbeta var sd
 surv_mixture_importance <- function(
   sample_one,
   sample_two,

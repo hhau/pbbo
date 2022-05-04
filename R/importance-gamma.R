@@ -1,3 +1,4 @@
+#'@importFrom stats dgamma rgamma var sd
 gamma_mixture_importance <- function(
   sample_one,
   sample_two,
