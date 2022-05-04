@@ -1,4 +1,4 @@
-library(mlrMBO)
+suppressPackageStartupMessages(library(mlrMBO))
 
 # necessary things
 target_lcdf <- function(x) {
@@ -29,7 +29,7 @@ test_that("main function can run error free", {
     param_set = param_set,
     n_internal_prior_draws = 20,
     n_internal_importance_draws = 10,
-    bayes_opt_iters = 5,
+    bayes_opt_iters_per_batch = 5,
     bayes_opt_print = FALSE
   ))
 
@@ -45,4 +45,22 @@ test_that("bad args give errors", {
     discrepancy = "definitely_not_a_discrep",
     param_set = param_set
   )))
+})
+
+test_that("batching can run error free", {
+  pbbo_res <- suppressWarnings(pbbo(
+    model_name = "test_normal",
+    target_lcdf = target_lcdf,
+    target_sampler = target_sampler,
+    prior_predictive_sampler = prior_predictive_sampler,
+    discrepancy = "log_cvm",
+    param_set = param_set,
+    n_internal_prior_draws = 20,
+    n_internal_importance_draws = 10,
+    bayes_opt_batches = 2,
+    bayes_opt_iters_per_batch = 5,
+    bayes_opt_print = FALSE
+  ))
+
+  expect_s3_class(pbbo_res[[2]], class = "MBOSingleObjResult")
 })

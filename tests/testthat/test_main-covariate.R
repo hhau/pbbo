@@ -1,4 +1,4 @@
-library(mlrMBO)
+suppressPackageStartupMessages(library(mlrMBO))
 
 # covariate version
 cov_values <- c(-2, 2)

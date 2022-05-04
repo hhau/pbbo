@@ -275,13 +275,11 @@ pbbo <- function(
     control_obj <- mlrMBO::makeMBOControl(final.method = "best.predicted") %>%
       mlrMBO::setMBOControlTermination(iters = bayes_opt_iters_per_batch)
 
-    if (!is.null(initial_design)) {
-      if (is.null(initial_design$y)) {
-        futile.logger::flog.info("Evaluating initial points")
-        initial_design$y <- apply(initial_design, 1, function(x) {
-          discrep_partial(unlist(x))
-        })
-      }
+    if (!is.null(initial_design) && is.null(initial_design$y)) {
+      futile.logger::flog.info("Evaluating initial points")
+      initial_design$y <- apply(initial_design, 1, function(x) {
+        discrep_partial(unlist(x))
+      })
     }
   }
 
@@ -293,6 +291,13 @@ pbbo <- function(
     } else {
       prev_batch_path <- full_batch_res[[batch_num - 1]][["opt.path"]] %>%
         as.data.frame()
+
+      all_names <- colnames(prev_batch_path)
+      unneeded_cols <- c("dob", "eol", "error.message", "exec.time", "cb",
+        "error.model", "train.time", "prop.type", "propose.time", "se", "mean",
+        "lambda")
+
+      design_col_names <- setdiff(all_names, unneeded_cols)
 
       log_raw_weights <- -exp(prev_batch_path$y)
       stopifnot(any(!is.na(log_raw_weights)))
@@ -306,7 +311,7 @@ pbbo <- function(
 
       batch_design <- prev_batch_path[
         prev_batch_indices,
-        c(names(param_set$pars), "y")
+        design_col_names
       ]
     }
 

@@ -73,16 +73,38 @@ make_params_surv_mix <- function(
 make_beta_params <- function(sample, sd_multiplier) {
   samp_mean <- mean(sample)
   samp_var <- var(sample) * (sd_multiplier ^ 2)
+  samp_var <- max(samp_var, 1e-6)
 
   t1 <- (samp_mean) * (1 - samp_mean) / (samp_var)
   shape1 <- samp_mean * (t1 - 1)
   shape2 <- (1 - samp_mean) * (t1 - 1)
+
+  if (is.na(shape1) | shape1 <= 0) {
+    futile.logger::flog.info(
+      "surv_mixture_importance failed to find appropriate beta shape1.
+      defaulting to shape1 = 1. This is hopefully just a function of early
+      optimisation numerics"
+    )
+
+    shape1 <- 1
+  }
+
+  if (is.na(shape2) | shape2 <= 0) {
+     futile.logger::flog.info(
+      "surv_mixture_importance failed to find appropriate beta shape2.
+      defaulting to shape2 = 1. This is hopefully just a function of early
+      optimisation numerics"
+    )
+
+     shape2 <- 1
+  }
+
   res <- list(shape1 = shape1, shape2 = shape2)
   return(res)
 }
 
 sample_surv_mix <- function(n, params, censoring_time) {
-  samples_per_component <- table(sample(
+  samples_per_component <- sample(
     x = c(1, 2, 3),
     size = n,
     replace = TRUE,
@@ -91,7 +113,13 @@ sample_surv_mix <- function(n, params, censoring_time) {
       params$mix_weight_2,
       1 - params$continuous_fraction
     )
-  ))
+  ) %>%
+    tabulate(nbins = 3)
+
+  futile.logger::flog.trace(
+    "samples_per_component contents: %s",
+    paste(samples_per_component, collapse = ", ")
+  )
 
   points_one <- rbeta(
     n = samples_per_component[1],
