@@ -29,6 +29,7 @@ test_that("main function with covariates can run error free", {
       prior_predictive_sampler = prior_predictive_sampler,
       covariate_values = cov_values,
       discrepancy = "log_cvm",
+      n_crs2_iters = 20,
       param_set = param_set,
       n_internal_prior_draws = 20,
       n_internal_importance_draws = 50,

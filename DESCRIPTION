@@ -29,4 +29,7 @@ Imports:
     Rmpfr,
     tidyr,
     emoa,
-    matrixStats
+    matrixStats,
+    tibble,
+    stringr,
+    dplyr

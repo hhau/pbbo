@@ -43,12 +43,6 @@
 #'   the first two arguments are (E)CDF functions, \code{points} is a vector of
 #'   evaluation points, and \code{weights} is the corresponding vector of
 #'   importance weights.
-#' @param initial_design \code{data.frame}: A data.frame of points at
-#'   which one might wish to evaluate the discrepancy function at initially. The
-#'   columns of this data.frame must match the names as described by
-#'   \code{param_set}, and include a column called \code{y}, which may be full
-#'   of \code{NA}s if the discrepancy has not been evaluated at the points.
-#'   Defaults to \code{NULL}.
 #' @param n_internal_prior_draws Numeric: Number of draws to generate from the
 #'   prior predictive distribution for the given value of \code{lambda} in each
 #'   of the optimisation iterations. More draws result in better estimates of
@@ -143,7 +137,7 @@ pbbo <- function(
   param_set,
   covariate_values = NULL,
   discrepancy = "log_cvm",
-  initial_design = NULL,
+  n_crs2_iters = 2000,
   n_internal_prior_draws = 250,
   importance_method = "uniform",
   importance_args = list(
@@ -231,6 +225,13 @@ pbbo <- function(
     )
   }
 
+  initial_design <- design_from_crs2(
+    discrep = discrep_partial,
+    param_set = param_set,
+    n_design = bayes_opt_design_points_per_batch,
+    n_crs2_iters = n_crs2_iters
+  )
+
   if (!is.null(extra_objective_term) & is.function(extra_objective_term)) {
     objective_function <- smoof::makeMultiObjectiveFunction(
       name = model_name,
@@ -285,7 +286,7 @@ pbbo <- function(
 
   full_batch_res <- list()
   for (batch_num in seq_len(bayes_opt_batches)) {
-    futile.logger::flog.info("Starting batch %d", batch_num)
+    futile.logger::flog.info("Starting Bayes opt batch %d", batch_num)
     if (batch_num == 1) {
       batch_design <- initial_design
     } else {

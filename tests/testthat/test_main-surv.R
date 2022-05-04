@@ -90,13 +90,14 @@ test_that("surv example can run error free", {
     param_set = param_set,
     covariate_values = cov_mat,
     discrepancy = "log_cvm",
+    n_crs2_iters = 50,
     importance_method = "surv_mixture",
     importance_args = list(
       surv_mixture_sd_multiplier = 1.05,
       surv_mixture_cont_frac = 0.95,
       surv_mixture_cens_times = censoring_times
     ),
-    bayes_opt_iters_per_batch = 3,
+    bayes_opt_iters_per_batch = 10,
     n_internal_prior_draws = 20,
     n_internal_importance_draws = 10
   ))
