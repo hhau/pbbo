@@ -12,7 +12,7 @@ The intention is to acquire an optimal set of hyperparameters λ by matching the
 Suppose the target distribution is `N(0, 0.5^2)`.
 We define the target LCDF and function to draws samples from the target:
 
-```{r}
+```r
 target_lcdf <- function(x) {
   pnorm(x, mean = 2, sd = 0.5, log.p = TRUE)
 }
@@ -23,7 +23,7 @@ target_sampler <- function(n) {
 ```
 and define a the prior predictive distribution of a model (and its hyperparameters):
 
-```{r}
+```r
 prior_predictive_sampler <- function(n, lambda) {
   rnorm(n = n, mean = lambda["mu"], sd = lambda["sigma"])
 }
@@ -36,7 +36,7 @@ param_set <- makeParamSet(
 
 We can then call `pbbo` to get optimal values of λ = (μ, σ)
 
-```{r}
+```r
 pbbo_res <- pbbo(
   target_lcdf = target_lcdf,
   target_sampler = target_sampler,
