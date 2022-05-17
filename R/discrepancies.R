@@ -128,13 +128,18 @@ log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
   log_vals_2 <- log_cdf_2(points)
 
   futile.logger::flog.trace(
+    "weights contains: %s",
+    paste(Rmpfr::format(weights, digits = 4), collapse = ", ")
+  )
+
+  futile.logger::flog.trace(
     "points contains: %s",
-    paste(format(points, digits = 4), collapse = ", ")
+    paste(Rmpfr::format(points, digits = 4), collapse = ", ")
   )
 
   futile.logger::flog.trace(
     "log_vals_2 contains: %s",
-    paste(format(log_vals_2, digits = 4), collapse = ", ")
+    paste(Rmpfr::format(log_vals_2, digits = 4), collapse = ", ")
   )
 
   stopifnot(
@@ -155,19 +160,28 @@ log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
 # andersen darling
 # note that the second argument is the **log_cdf**
 log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
-  log_n <- log(length(points))
   high_prec_points <- Rmpfr::mpfr(points, 120)
   high_prec_weights <- Rmpfr::mpfr(weights, 120)
 
   vals_1 <- ecdf_1(as.numeric(points))
   log_vals_2 <- log_cdf_2(high_prec_points)
+  log_weights_term <- log(high_prec_weights)
 
+  futile.logger::flog.trace(
+    "weights contains: %s",
+    paste(Rmpfr::format(weights, digits = 4), collapse = ", ")
+  )
+
+  futile.logger::flog.trace(
+    "points contains: %s",
+    paste(Rmpfr::format(points, digits = 4), collapse = ", ")
+  )
   # method assumes that log_cdf_2 returns lcdf values
   # leq to deal with rounding up to zero? for the right hand tail????
   # high prec is supposed to get around that.
   futile.logger::flog.trace(
     "log_vals_2 contains: %s",
-    paste(format(log_vals_2, digits = 4), collapse = ", ")
+    paste(Rmpfr::format(log_vals_2, digits = 4), collapse = ", ")
   )
 
   stopifnot(all(log_vals_2 <= 0))
@@ -178,7 +192,22 @@ log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
 
   # denominator term
   log_bot <- (log_vals_2) + Rmpfr::log1mexp(a = -log_vals_2)
-  log_weights_term <- log(high_prec_weights)
+
+  # need to check because under/overflow still an issue
+  bad_indices <- c(
+    which(is.infinite(log_top) | is.nan(log_top)),
+    which(is.infinite(log_bot) | is.nan(log_bot))
+  ) %>%
+    unique()
+
+  if (length(bad_indices) != 0) {
+    log_top <- log_top[-bad_indices]
+    log_bot <- log_bot[-bad_indices]
+    log_weights_term <- log_weights[-bad_indices]
+  }
+
+  log_n <- log(length(points) - length(bad_indices))
+
   log_integrand <- log_top - log_bot - log_weights_term
   max_c <- max(log_integrand)
   log_res <- log(sum(exp(log_integrand - max_c))) + max_c
