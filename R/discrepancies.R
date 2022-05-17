@@ -203,7 +203,7 @@ log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
   if (length(bad_indices) != 0) {
     log_top <- log_top[-bad_indices]
     log_bot <- log_bot[-bad_indices]
-    log_weights_term <- log_weights[-bad_indices]
+    log_weights_term <- log_weights_term[-bad_indices]
   }
 
   log_n <- log(length(points) - length(bad_indices))
