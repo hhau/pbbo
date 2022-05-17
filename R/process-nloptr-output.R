@@ -32,6 +32,7 @@ design_from_crs2 <- function(discrep, param_set, n_design, n_crs2_iters) {
   sink(file = NULL)
 
   res <- process_output_file(output_file, param_set) %>%
+    dplyr::filter(!is.na(y)) %>%
     resample_by_y(n_rows = n_design)
 
   file.remove(output_file)
