@@ -142,7 +142,7 @@ pbbo <- function(
   covariate_values = NULL,
   discrepancy = "log_cvm",
   n_crs2_iters = 2000,
-  n_internal_prior_draws = 250,
+  n_internal_prior_draws = 5e4,
   importance_method = "uniform",
   importance_args = list(
     uniform_lower = NULL,
@@ -153,9 +153,9 @@ pbbo <- function(
     surv_mixture_cont_frac = 0.95,
     surv_mixture_cens_times = rep(NULL, length(covariate_values))
   ),
-  n_internal_importance_draws = 100,
-  bayes_opt_batches = 1,
-  bayes_opt_iters_per_batch = 100,
+  n_internal_importance_draws = 5e3,
+  bayes_opt_batches = 2,
+  bayes_opt_iters_per_batch = 150,
   bayes_opt_design_points_per_batch = min(
     4 * length(param_set$pars),
     bayes_opt_iters_per_batch
