@@ -35,11 +35,11 @@ pbbo(
 
 \item{target_lcdf}{Function: Vectorised target log-CDF. Takes one argument, a
 vector of points at which we wish to evaluate the log-CDF. This function
-must accept \code{\link[Rmpfr]{mpfr}} points. This requirement handled by
-calling \code{as.numeric} on the vector of points, but performance is
-improved by using high precision versions of functions compatible with
-\code{\link[Rmpfr]{mpfr}} points. See \code{\link[Rmpfr]{mpfr-class}}
-for a range of such functions.}
+must accept \code{\link[Rmpfr]{mpfr}} points. This requirement can be
+trivially handled by calling \code{as.numeric} on the vector of points, but
+performance is improved by using high precision versions of functions
+compatible with \code{\link[Rmpfr]{mpfr}} points. See
+\code{\link[Rmpfr]{mpfr-class}} for a range of such functions.}
 
 \item{target_sampler}{Function: Generates samples from the target
 distribution. Takes one argument \code{n}, the desired number of samples.}
@@ -75,10 +75,10 @@ covariate vector or row in the covariate matrix.}
 \code{'log_ad'} for Cramér–von Mises (default) or Anderson–Darling distance
 respectively. The latter is currently unsupported as it is too numerically
 difficult to compute accurately. Alternatively, one can supply a function
-with the signature \code{function(cdf_1, cdf_2, points, weights)}, where
-the first two arguments are (E)CDF functions, \code{points} is a vector of
-evaluation points, and \code{weights} is the corresponding vector of
-importance weights.}
+with the signature \code{function(ecdf_1, lcdf_2, points, weights)}, where
+the first argument is the ECDF of the PPD, the second is the LCDF of the
+target, \code{points} is a vector of evaluation points, and \code{weights}
+is the corresponding vector of importance weights.}
 
 \item{n_crs2_iters}{Numeric: Number of iterations to run the CRS2 algorithm
 from \code{\link[nloptr]{nloptr}}. These are used to initialise the Bayes
@@ -88,7 +88,7 @@ single objectives, so it does not include the \code{extra_objective_term}.}
 \item{n_internal_prior_draws}{Numeric: Number of draws to generate from the
 prior predictive distribution for the given value of \code{lambda} in each
 of the optimisation iterations. More draws result in better estimates of
-the ECDF.}
+the ECDF. Particularly importance if \code{discrepancy = "log_ad"}.}
 
 \item{importance_method}{String: Defaults to \code{'uniform'}. Specifies
 which importance sampling method should be used. Options include \code{
