@@ -35,6 +35,25 @@ design_from_crs2 <- function(discrep, param_set, n_design, n_crs2_iters) {
     dplyr::filter(!is.na(y)) %>%
     resample_by_y(n_rows = n_design)
 
+  n_distinct <- res %>%
+    dplyr::distinct() %>%
+    nrow()
+
+  if (n_distinct < n_design) {
+    futile.logger::flog.warn(
+      "CRS2 did not return enough unique values to fully initialise the GP.
+      Extra values from lhs::maximinLHS are being added to the initial design."
+    )
+
+    extra_vals <- ParamHelpers::generateDesign(
+      n = n_design - n_distinct,
+      par.set = param_set,
+      fun = lhs::maximinLHS
+    )
+
+    res <- dplyr::bind_rows(res, extra_vals)
+  }
+
   file.remove(output_file)
   return(res)
 }
