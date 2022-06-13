@@ -1,33 +1,41 @@
+---
+output: github_document
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# `pbbo` – Prior by Bayesian Optimisation
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# `pbbo` -- Prior by Bayesian Optimisation
 
 <!-- badges: start -->
-
 [![R-CMD-check](https://github.com/hhau/pbbo/workflows/R-CMD-check/badge.svg)](https://github.com/hhau/pbbo/actions)
 <!-- badges: end -->
 
-`pbbo` uses information you supply about the prior predictive
-distribution to help you find a prior for the parameters in your
-Bayesian model.
+`pbbo` uses information you supply about the prior predictive distribution to help you find a prior for the parameters in your Bayesian model.
 
 ## Installation
 
-You can install the development version of pbbo from
-[GitHub](https://github.com/hhau/pbbbo) with:
+You can install the development version of pbbo from [GitHub](https://github.com/hhau/pbbbo) with:
 
-``` r
+```{r, eval = FALSE}
 # install.packages("devtools")
 devtools::install_github("hhau/pbbo")
 ```
 
 ## An example
 
-Suppose the target distribution is `N(0, 0.5^2)`. We define the target
-LCDF and function to draws samples from the target:
+Suppose the target distribution is `N(0, 0.5^2)`.
+We define the target LCDF and function to draws samples from the target:
 
-``` r
+```{r}
 library(pbbo)
 suppressPackageStartupMessages(library(ParamHelpers))
 
@@ -39,11 +47,9 @@ target_sampler <- function(n) {
   rnorm(n = n, mean = 2, sd = 0.5)
 }
 ```
+and define a the prior predictive distribution of a model (and its hyperparameters):
 
-and define a the prior predictive distribution of a model (and its
-hyperparameters):
-
-``` r
+```{r}
 prior_predictive_sampler <- function(n, lambda) {
   rnorm(n = n, mean = lambda["mu"], sd = lambda["sigma"])
 }
@@ -56,16 +62,14 @@ param_set <- makeParamSet(
 
 We can then call `pbbo` to get optimal values of λ = (μ, σ)
 
-``` r
+```{r}
 library(futile.logger)
 
 flog.threshold(futile.logger::INFO, name = "pbbo")
-#> NULL
 flog.appender(
   appender.file("../../logs/pbbo-test.log"),
   "pbbo"
 )
-#> NULL
 
 pbbo_res <- suppressWarnings(pbbo(
   target_lcdf = target_lcdf,
@@ -80,22 +84,15 @@ pbbo_res <- suppressWarnings(pbbo(
   bayes_opt_iters_per_batch = 50,
   bayes_opt_design_points_per_batch = 40
 ))
-#> INFO [2022-06-08 13:57:01] Starting stage one CRS2 optimiser
-#> INFO [2022-06-08 13:57:06] Starting Bayes opt batch 1
 
 opt_lambda <- pbbo_res[[1]]$x
 print(opt_lambda)
-#> $mu
-#> [1] 2.001372
-#> 
-#> $sigma
-#> [1] 0.5057144
 ```
 
-We can compare the prior predictive distribution at the optima against
-the target:
+We can compare the prior predictive distribution at the optima against the
+target:
 
-``` r
+```{r compare}
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 
@@ -116,5 +113,3 @@ ggplot(plot_tbl) +
   ) +
   labs(colour = "Type")
 ```
-
-<img src="man/figures/README-compare-1.png" width="100%" />
