@@ -16,20 +16,13 @@ design_from_crs2 <- function(discrep, param_set, n_design, n_crs2_iters) {
   futile.logger::flog.info("Starting stage one CRS2 optimiser")
   output_file <- tempfile()
 
-  sink(file = output_file, append = TRUE)
-  crs_res <- nloptr::nloptr(
-    x0 = init_val,
-    eval_f = nlr_opt_wrap,
-    lb = ParamHelpers::getLower(param_set),
-    ub = ParamHelpers::getUpper(param_set),
-    opts = list(
-      algorithm = "NLOPT_GN_CRS2_LM",
-      print_level = 3,
-      maxeval = n_crs2_iters,
-      xtol_rel = -1
-    )
+  crs_res <- run_nlopt_crs2(
+    output_file = output_file,
+    init_val = init_val,
+    nlr_opt_wrap = nlr_opt_wrap,
+    param_set = param_set,
+    n_crs2_iters = n_crs2_iters
   )
-  sink(file = NULL)
 
   res <- process_output_file(output_file, param_set) %>%
     dplyr::filter(!is.na(y)) %>%
@@ -56,6 +49,31 @@ design_from_crs2 <- function(discrep, param_set, n_design, n_crs2_iters) {
 
   file.remove(output_file)
   return(res)
+}
+
+run_nlopt_crs2 <- function(
+  output_file,
+  init_val,
+  nlr_opt_wrap,
+  param_set,
+  n_crs2_iters
+) {
+  sink(file = output_file, append = TRUE)
+  on.exit(expr = sink(file = NULL), add = TRUE, after = FALSE)
+  crs_res <- nloptr::nloptr(
+    x0 = init_val,
+    eval_f = nlr_opt_wrap,
+    lb = ParamHelpers::getLower(param_set),
+    ub = ParamHelpers::getUpper(param_set),
+    opts = list(
+      algorithm = "NLOPT_GN_CRS2_LM",
+      print_level = 3,
+      maxeval = n_crs2_iters,
+      xtol_rel = -1
+    )
+  )
+
+  return(crs_res)
 }
 
 begins_with_c <- function(x, c, return_index = FALSE) {
