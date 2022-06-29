@@ -6,6 +6,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/hhau/pbbo/workflows/R-CMD-check/badge.svg)](https://github.com/hhau/pbbo/actions)
+[![R-CMD-check](https://github.com/hhau/pbbo/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hhau/pbbo/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 `pbbo` uses information you supply about the prior predictive
@@ -80,16 +81,16 @@ pbbo_res <- suppressWarnings(pbbo(
   bayes_opt_iters_per_batch = 50,
   bayes_opt_design_points_per_batch = 40
 ))
-#> INFO [2022-06-08 13:57:01] Starting stage one CRS2 optimiser
-#> INFO [2022-06-08 13:57:06] Starting Bayes opt batch 1
+#> INFO [2022-06-29 15:47:22] Starting stage one CRS2 optimiser
+#> INFO [2022-06-29 15:47:31] Starting Bayes opt batch 1
 
 opt_lambda <- pbbo_res[[1]]$x
 print(opt_lambda)
 #> $mu
-#> [1] 2.001372
+#> [1] 1.996942
 #> 
 #> $sigma
-#> [1] 0.5057144
+#> [1] 0.4965958
 ```
 
 We can compare the prior predictive distribution at the optima against
