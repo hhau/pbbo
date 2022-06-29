@@ -55,6 +55,6 @@ test_that("crs2_desgin returns a tibble and does not error", {
 
   expect_equal(
     object = nrow(t_res),
-    expected = 20
+    expected = 20 + 10 # magic number for robustness of design
   )
 })
