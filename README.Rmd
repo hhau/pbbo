@@ -16,7 +16,6 @@ knitr::opts_chunk$set(
 # `pbbo` -- Prior by Bayesian Optimisation
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/hhau/pbbo/workflows/R-CMD-check/badge.svg)](https://github.com/hhau/pbbo/actions)
 [![R-CMD-check](https://github.com/hhau/pbbo/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hhau/pbbo/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -86,7 +85,9 @@ pbbo_res <- suppressWarnings(pbbo(
   bayes_opt_design_points_per_batch = 40
 ))
 
-opt_lambda <- pbbo_res[[1]]$x
+opt_lambda <- pbbo_res %>%
+  get_best_lambda()
+
 print(opt_lambda)
 ```
 
@@ -101,7 +102,7 @@ n_samples <- 2e3
 
 plot_tbl <- tibble(
   x = c(
-    prior_predictive_sampler(n_samples, unlist(opt_lambda)),
+    prior_predictive_sampler(n_samples, opt_lambda),
     target_sampler(n_samples)
   ),
   grp = rep(c("optima", "target"), each = n_samples)

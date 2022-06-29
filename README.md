@@ -5,7 +5,6 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/hhau/pbbo/workflows/R-CMD-check/badge.svg)](https://github.com/hhau/pbbo/actions)
 [![R-CMD-check](https://github.com/hhau/pbbo/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hhau/pbbo/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -81,16 +80,15 @@ pbbo_res <- suppressWarnings(pbbo(
   bayes_opt_iters_per_batch = 50,
   bayes_opt_design_points_per_batch = 40
 ))
-#> INFO [2022-06-29 15:47:22] Starting stage one CRS2 optimiser
-#> INFO [2022-06-29 15:47:31] Starting Bayes opt batch 1
+#> INFO [2022-06-29 15:51:33] Starting stage one CRS2 optimiser
+#> INFO [2022-06-29 15:51:39] Starting Bayes opt batch 1
 
-opt_lambda <- pbbo_res[[1]]$x
+opt_lambda <- pbbo_res %>%
+  get_best_lambda()
+
 print(opt_lambda)
-#> $mu
-#> [1] 1.996942
-#> 
-#> $sigma
-#> [1] 0.4965958
+#>        mu     sigma 
+#> 1.9656182 0.5028791
 ```
 
 We can compare the prior predictive distribution at the optima against
@@ -104,7 +102,7 @@ n_samples <- 2e3
 
 plot_tbl <- tibble(
   x = c(
-    prior_predictive_sampler(n_samples, unlist(opt_lambda)),
+    prior_predictive_sampler(n_samples, opt_lambda),
     target_sampler(n_samples)
   ),
   grp = rep(c("optima", "target"), each = n_samples)
