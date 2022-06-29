@@ -1,12 +1,12 @@
 #' Get the best value of the hyperparameters from a \code{pbbo} result
 #'
-#' @param pbbo_res A result from \code{\link{pbbo}}.
+#' @param pbbo_res An object produced by \code{\link{pbbo}}.
 #' @param pbbo_kappa Numeric: A positive number to linearise the dual objective
-#'    functions should \code{pbbo_res} have multiple objectives. Defaults to
+#'    functions (should \code{pbbo_res} have multiple objectives). Defaults to
 #'    \code{NULL}, and will error if not provided and required.
 #'
-#' @return Named numeric vector, of the form accepted by the
-#'    \code{prior_predictive_sampler} in \code{\link{pbbo}}..
+#' @return Named numeric vector, of the form accepted by
+#'    \code{prior_predictive_sampler} in \code{\link{pbbo}}.
 #' @export
 get_best_lambda <- function(pbbo_res, pbbo_kappa = NULL) {
   n_batches <- length(pbbo_res)

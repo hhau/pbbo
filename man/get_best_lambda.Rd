@@ -7,15 +7,15 @@
 get_best_lambda(pbbo_res, pbbo_kappa = NULL)
 }
 \arguments{
-\item{pbbo_res}{A result from \code{\link{pbbo}}.}
+\item{pbbo_res}{An object produced by \code{\link{pbbo}}.}
 
 \item{pbbo_kappa}{Numeric: A positive number to linearise the dual objective
-functions should \code{pbbo_res} have multiple objectives. Defaults to
+functions (should \code{pbbo_res} have multiple objectives). Defaults to
 \code{NULL}, and will error if not provided and required.}
 }
 \value{
-Named numeric vector, of the form accepted by the
-\code{prior_predictive_sampler} in \code{\link{pbbo}}..
+Named numeric vector, of the form accepted by
+\code{prior_predictive_sampler} in \code{\link{pbbo}}.
 }
 \description{
 Get the best value of the hyperparameters from a \code{pbbo} result
