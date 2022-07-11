@@ -63,14 +63,6 @@ param_set <- makeParamSet(
 We can then call `pbbo` to get optimal values of λ = (μ, σ)
 
 ```{r}
-library(futile.logger)
-
-flog.threshold(futile.logger::INFO, name = "pbbo")
-flog.appender(
-  appender.file("../../logs/pbbo-test.log"),
-  "pbbo"
-)
-
 pbbo_res <- suppressWarnings(pbbo(
   target_lcdf = target_lcdf,
   target_sampler = target_sampler,

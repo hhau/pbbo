@@ -57,16 +57,6 @@ param_set <- makeParamSet(
 We can then call `pbbo` to get optimal values of λ = (μ, σ)
 
 ``` r
-library(futile.logger)
-
-flog.threshold(futile.logger::INFO, name = "pbbo")
-#> NULL
-flog.appender(
-  appender.file("../../logs/pbbo-test.log"),
-  "pbbo"
-)
-#> NULL
-
 pbbo_res <- suppressWarnings(pbbo(
   target_lcdf = target_lcdf,
   target_sampler = target_sampler,
@@ -80,15 +70,15 @@ pbbo_res <- suppressWarnings(pbbo(
   bayes_opt_iters_per_batch = 50,
   bayes_opt_design_points_per_batch = 40
 ))
-#> INFO [2022-06-29 15:51:33] Starting stage one CRS2 optimiser
-#> INFO [2022-06-29 15:51:39] Starting Bayes opt batch 1
+#> INFO [2022-06-29 15:57:12] Starting stage one CRS2 optimiser
+#> INFO [2022-06-29 15:57:19] Starting Bayes opt batch 1
 
 opt_lambda <- pbbo_res %>%
   get_best_lambda()
 
 print(opt_lambda)
 #>        mu     sigma 
-#> 1.9656182 0.5028791
+#> 1.9989003 0.4923879
 ```
 
 We can compare the prior predictive distribution at the optima against
