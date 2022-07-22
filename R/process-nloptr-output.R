@@ -132,16 +132,33 @@ process_output_file <- function(outfile, param_set) {
 }
 
 resample_by_y <- function(full_design, n_rows) {
-  log_raw_weights <- -exp(full_design$y)
-  stopifnot(any(!is.na(log_raw_weights)))
+  # need to be careful of overflow in the exp() step -- filter anything that
+  # will overflow. 700 ~= log(.Machine$double.xmax)
+  feasible_design <- full_design %>%
+    dplyr::filter(y < 700)
 
+  log_raw_weights <- -exp(feasible_design$y)
+  stopifnot(any(!is.na(log_raw_weights)))
   weights <- exp(log_raw_weights - matrixStats::logSumExp(log_raw_weights))
+  n_feasible <- sum(weights > 0)
+
+  if (n_feasible < n_rows) {
+    futile.logger::flog.info(
+      paste(
+        "Not enough feasible points from CRS2 optimisation path",
+        "to satisfy the requested number of design points.",
+        "Consider using more CRS2 iterations.",
+        "Optimisation will continue using only the feasible points."
+      )
+    )
+  }
+
   indices <- sample(
-    x = seq_len(nrow(full_design)),
-    size = min(n_rows, nrow(full_design)),
+    x = seq_len(nrow(feasible_design)),
+    size = min(n_rows, n_feasible),
     replace = FALSE,
     prob = weights
   )
 
-  return(full_design[indices, ])
+  return(feasible_design[indices, ])
 }
