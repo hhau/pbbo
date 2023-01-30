@@ -154,8 +154,8 @@ pbbo <- function(
     surv_mixture_cens_times = rep(NULL, length(covariate_values))
   ),
   n_internal_importance_draws = 5e3,
-  bayes_opt_batches = 2,
-  bayes_opt_iters_per_batch = 150,
+  bayes_opt_batches = 1,
+  bayes_opt_iters_per_batch = 300,
   bayes_opt_design_points_per_batch = min(
     4 * length(param_set$pars),
     bayes_opt_iters_per_batch

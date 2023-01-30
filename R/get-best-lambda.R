@@ -16,7 +16,7 @@ get_best_lambda <- function(pbbo_res, pbbo_kappa = NULL) {
     if (is.null(pbbo_kappa)) {
       stop(
         paste(
-          "Result has multiple objectives but kappa is NULL.",
+          "Result has multiple objectives but pbbo_kappa is NULL.",
           "Specify a kappa value to choose an optimum value for lambda."
         )
       )

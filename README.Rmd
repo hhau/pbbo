@@ -94,14 +94,14 @@ suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tibble))
 
-n_samples <- 2e3
+n_plot_samples <- 5e3
 
 plot_tbl <- tibble(
   x = c(
-    prior_predictive_sampler(n_samples, opt_lambda),
-    target_sampler(n_samples)
+    prior_predictive_sampler(n_plot_samples, opt_lambda),
+    target_sampler(n_plot_samples)
   ),
-  grp = rep(c("optima", "target"), each = n_samples)
+  grp = rep(c("optima", "target"), each = n_plot_samples)
 )
 
 ggplot(plot_tbl) +
@@ -203,7 +203,6 @@ pbbo_multi_objective_res <- suppressWarnings(pbbo(
 Compare the results on the observable scale:
 
 ```{r}
-n_plot_samples <- 5e3
 pal_colours <- scales::hue_pal()(3)
 
 obs_scale_plot_tbl <- tibble(

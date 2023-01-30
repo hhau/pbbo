@@ -71,15 +71,15 @@ pbbo_res <- suppressWarnings(pbbo(
   bayes_opt_iters_per_batch = 50,
   bayes_opt_design_points_per_batch = 40
 ))
-#> INFO [2022-07-22 16:57:35] Starting stage one CRS2 optimiser
-#> INFO [2022-07-22 16:57:42] Starting Bayes opt batch 1
+#> INFO [2023-01-30 14:11:24] Starting stage one CRS2 optimiser
+#> INFO [2023-01-30 14:11:31] Starting Bayes opt batch 1
 
 opt_lambda <- pbbo_res %>%
   get_best_lambda()
 
 print(opt_lambda)
 #>       mu    sigma 
-#> 2.013841 0.506621
+#> 2.001364 0.501134
 ```
 
 We can compare the prior predictive distribution at the optima against
@@ -90,14 +90,14 @@ suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tibble))
 
-n_samples <- 2e3
+n_plot_samples <- 5e3
 
 plot_tbl <- tibble(
   x = c(
-    prior_predictive_sampler(n_samples, opt_lambda),
-    target_sampler(n_samples)
+    prior_predictive_sampler(n_plot_samples, opt_lambda),
+    target_sampler(n_plot_samples)
   ),
-  grp = rep(c("optima", "target"), each = n_samples)
+  grp = rep(c("optima", "target"), each = n_plot_samples)
 )
 
 ggplot(plot_tbl) +
@@ -167,8 +167,8 @@ pbbo_single_objective_res <- suppressWarnings(pbbo(
   bayes_opt_iters_per_batch = 50,
   bayes_opt_design_points_per_batch = 40
 ))
-#> INFO [2022-07-22 16:58:16] Starting stage one CRS2 optimiser
-#> INFO [2022-07-22 16:58:26] Starting Bayes opt batch 1
+#> INFO [2023-01-30 14:12:07] Starting stage one CRS2 optimiser
+#> INFO [2023-01-30 14:12:12] Starting Bayes opt batch 1
 ```
 
 `pbbo` also accepts a secondary objective, which we set to be the
@@ -202,7 +202,7 @@ pbbo_multi_objective_res <- suppressWarnings(pbbo(
   bayes_opt_design_points_per_batch = 40,
   extra_objective_term = neg_mean_log_sd
 ))
-#> INFO [2022-07-22 16:59:33] Starting stage one CRS2 optimiser
+#> INFO [2023-01-30 14:12:59] Starting stage one CRS2 optimiser
 #> Loading required package: mco
 #> Loading required package: emoa
 #> 
@@ -210,13 +210,12 @@ pbbo_multi_objective_res <- suppressWarnings(pbbo(
 #> The following object is masked from 'package:dplyr':
 #> 
 #>     coalesce
-#> INFO [2022-07-22 16:59:45] Starting Bayes opt batch 1
+#> INFO [2023-01-30 14:13:03] Starting Bayes opt batch 1
 ```
 
 Compare the results on the observable scale:
 
 ``` r
-n_plot_samples <- 5e3
 pal_colours <- scales::hue_pal()(3)
 
 obs_scale_plot_tbl <- tibble(
