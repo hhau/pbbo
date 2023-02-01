@@ -8,6 +8,7 @@
 pbbo(
   model_name = "default",
   target_lcdf,
+  target_lpdf,
   target_sampler,
   prior_predictive_sampler,
   param_set,
@@ -21,8 +22,8 @@ pbbo(
     surv_mixture_sd_multiplier = 1.05, surv_mixture_cont_frac = 0.95,
     surv_mixture_cens_times = rep(NULL, length(covariate_values))),
   n_internal_importance_draws = 5000,
-  bayes_opt_batches = 2,
-  bayes_opt_iters_per_batch = 150,
+  bayes_opt_batches = 1,
+  bayes_opt_iters_per_batch = 300,
   bayes_opt_design_points_per_batch = min(4 * length(param_set$pars),
     bayes_opt_iters_per_batch),
   bayes_opt_print = FALSE,
@@ -40,6 +41,10 @@ trivially handled by calling \code{as.numeric} on the vector of points, but
 performance is improved by using high precision versions of functions
 compatible with \code{\link[Rmpfr]{mpfr}} points. See
 \code{\link[Rmpfr]{mpfr-class}} for a range of such functions.}
+
+\item{target_lpdf}{Function: Vectorised target log-PDF (density/mass function
+). Corresponds to \code{target_lcdf}, and is currently required by the
+importance sampling algorithm.}
 
 \item{target_sampler}{Function: Generates samples from the target
 distribution. Takes one argument \code{n}, the desired number of samples.}
