@@ -7,6 +7,10 @@ target_lcdf <- function(x, cov) {
   pnorm(x, mean = cov, sd = 0.5, log.p = TRUE)
 }
 
+target_lpdf <- function(x, cov) {
+  dnorm(x, mean = cov, sd = 0.5, log = TRUE)
+}
+
 target_sampler <- function(n, cov) {
   rnorm(n = n, mean = cov, sd = 0.5)
 }
@@ -25,6 +29,7 @@ test_that("main function with covariates can run error free", {
     pbbo(
       model_name = "test_normal_covariate",
       target_lcdf = target_lcdf,
+      target_lpdf = target_lpdf,
       target_sampler = target_sampler,
       prior_predictive_sampler = prior_predictive_sampler,
       covariate_values = cov_values,
@@ -47,6 +52,7 @@ test_that("bad covariate args cause an error", {
     pbbo(
       model_name = "test_normal_covariate",
       target_lcdf = target_lcdf,
+      target_lpdf = target_lpdf,
       target_sampler = target_sampler,
       prior_predictive_sampler = prior_predictive_sampler,
       covariate_values = bad_covariate_form,

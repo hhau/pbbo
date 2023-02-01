@@ -5,6 +5,10 @@ target_lcdf <- function(x) {
   pnorm(x, mean = 2, sd = 0.5, log.p = TRUE)
 }
 
+target_lpdf <- function(x) {
+  dnorm(x, mean = 2, sd = 0.5, log = TRUE)
+}
+
 target_sampler <- function(n) {
   rnorm(n = n, mean = 2, sd = 0.5)
 }
@@ -28,6 +32,7 @@ test_that("main with multiple objectives can run error free", {
   mlr_res <- suppressWarnings(pbbo(
     model_name = "test_normal",
     target_lcdf = target_lcdf,
+    target_lpdf = target_lpdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     discrepancy = "log_cvm",
@@ -48,6 +53,7 @@ test_that("main with multiple objectives _and batches_ can run error free", {
   mlr_res <- suppressWarnings(pbbo(
     model_name = "test_normal",
     target_lcdf = target_lcdf,
+    target_lpdf = target_lpdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     discrepancy = "log_cvm",

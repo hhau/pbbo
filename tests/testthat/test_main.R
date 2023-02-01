@@ -5,6 +5,10 @@ target_lcdf <- function(x) {
   pnorm(x, mean = 2, sd = 0.5, log.p = TRUE)
 }
 
+target_lpdf <- function(x) {
+  dnorm(x, mean = 2, sd = 0.5, log = TRUE)
+}
+
 target_sampler <- function(n) {
   rnorm(n = n, mean = 2, sd = 0.5)
 }
@@ -23,6 +27,7 @@ test_that("main function can run error free", {
   mlr_res <- suppressWarnings(pbbo(
     model_name = "test_normal",
     target_lcdf = target_lcdf,
+    target_lpdf = target_lpdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     discrepancy = "log_cvm",
@@ -41,6 +46,7 @@ test_that("bad args give errors", {
   expect_error(suppressWarnings(pbbo(
     model_name = "test_normal",
     target_lcdf = target_lcdf,
+    target_lpdf = target_lpdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     discrepancy = "definitely_not_a_discrep",
@@ -52,6 +58,7 @@ test_that("batching can run error free", {
   pbbo_res <- suppressWarnings(pbbo(
     model_name = "test_normal",
     target_lcdf = target_lcdf,
+    target_lpdf = target_lpdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     discrepancy = "log_cvm",

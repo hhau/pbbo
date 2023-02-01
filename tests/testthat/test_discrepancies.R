@@ -2,6 +2,10 @@ target_lcdf <- function(x) {
   pnorm(as.numeric(x), mean = 2, sd = 0.5, log.p = TRUE)
 }
 
+target_lpdf <- function(x) {
+  dnorm(as.numeric(x), mean = 2, sd = 0.5, log = TRUE)
+}
+
 target_sampler <- function(n) {
   rnorm(n = n, mean = 2, sd = 0.5)
 }
@@ -16,6 +20,7 @@ internal_discrepancy_f <- pbbo:::log_cvm_discrepancy
 ## baseline
 test_discrepancy <- build_discrep(
   target_lcdf = target_lcdf,
+  target_lpdf = target_lpdf,
   target_sampler = target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
   internal_discrepancy_f = internal_discrepancy_f,
@@ -40,12 +45,17 @@ ad_test_target_lcdf <- function(x) {
   Rmpfr::pnorm(x, mean = 2, sd = 0.5, log.p = TRUE)
 }
 
+ad_test_target_lpdf <- function(x) {
+  Rmpfr::dnorm(x, mean = 2, sd = 0.5, log = TRUE)
+}
+
 ad_test_target_sampler <- function(n) {
   rnorm(n, mean = 2, sd = 0.5)
 }
 
 ad_test_discrepancy <- build_discrep(
   target_lcdf = ad_test_target_lcdf,
+  target_lpdf = ad_test_target_lcdf,
   target_sampler = ad_test_target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
   internal_discrepancy_f = pbbo:::log_ad_discrepancy,

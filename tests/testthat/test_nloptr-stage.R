@@ -7,6 +7,10 @@ target_lcdf <- function(x, cov) {
   pnorm(x, mean = cov, sd = 0.5, log.p = TRUE)
 }
 
+target_lpdf <- function(x, cov) {
+  dnorm(x, mean = cov, sd = 0.5, log = TRUE)
+}
+
 target_sampler <- function(n, cov) {
   rnorm(n = n, mean = cov, sd = 0.5)
 }
@@ -22,6 +26,7 @@ param_set <- makeParamSet(
 
 test_discrepancy <- pbbo:::build_discrep_covariate(
   target_lcdf = target_lcdf,
+  target_lpdf = target_lpdf,
   target_sampler = target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
   covariate_list = as.list(cov_values),

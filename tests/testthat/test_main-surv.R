@@ -30,6 +30,18 @@ target_lcdf <- function(x, cov_val) {
   return(res)
 }
 
+target_lpdf <- function(x, cov_val) {
+  res <- array(dim = length(x))
+  cens_time <- cov_val["censoring_times"]
+  cens_indices <- which(x == cens_time)
+  unces_indices <- base::setdiff(seq_len(length(x)), cens_indices)
+
+  res[cens_indices] <- log(1 - tar_cdf_cts_portion)
+  res[unces_indices] <- log(tar_cdf_cts_portion * (1 / cens_time))
+
+  return(res)
+}
+
 target_sampler <- function(n, cov_val) {
   cens_time <- as.numeric(cov_val["censoring_times"])
   cts_or_cens_indicators <- sample(
@@ -85,6 +97,7 @@ param_set <- makeParamSet(
 test_that("surv example can run error free", {
   pbbo_res <- suppressWarnings(pbbo(
     target_lcdf = target_lcdf,
+    target_lpdf = target_lpdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     param_set = param_set,

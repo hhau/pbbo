@@ -1,5 +1,6 @@
 build_discrep <- function(
   target_lcdf,
+  target_lpdf,
   target_sampler,
   prior_predictive_sampler,
   internal_discrepancy_f,
@@ -45,8 +46,9 @@ build_discrep <- function(
     )
 
     internal_result <- internal_discrepancy_f(
-      prior_ecdf,
-      target_lcdf,
+      ecdf_1 = prior_ecdf,
+      log_cdf_2 = target_lcdf,
+      log_pdf_2 = target_lpdf,
       points = importance_draws$points,
       weights = importance_draws$weights
     )
@@ -59,6 +61,7 @@ build_discrep <- function(
 
 build_discrep_covariate <- function(
   target_lcdf,
+  target_lpdf,
   target_sampler,
   prior_predictive_sampler,
   covariate_list,
@@ -78,6 +81,7 @@ build_discrep_covariate <- function(
     )
 
     local_target_lcdf <- function(x) target_lcdf(x, a_covariate_draw)
+    local_target_lpdf <- function(x) target_lpdf(x, a_covariate_draw)
     local_target_sampler <- function(n) target_sampler(n, a_covariate_draw)
     local_pp_sampler <- function(n, l) {
       prior_predictive_sampler(n, l, a_covariate_draw)
@@ -95,6 +99,7 @@ build_discrep_covariate <- function(
 
     inner_discrep <- build_discrep(
       target_lcdf = local_target_lcdf,
+      target_lpdf = local_target_lpdf,
       target_sampler = local_target_sampler,
       prior_predictive_sampler = local_pp_sampler,
       internal_discrepancy_f = internal_discrepancy_f,
@@ -122,10 +127,11 @@ build_discrep_covariate <- function(
 
 
 # cramer-von mises
-log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
+log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, log_pdf_2, points, weights) {
   log_n <- log(length(points))
   vals_1 <- ecdf_1(points)
-  log_vals_2 <- log_cdf_2(points)
+  log_cdf_vals_2 <- log_cdf_2(points)
+  log_pdf_vals_2 <- log_pdf_2(points)
 
   futile.logger::flog.trace(
     "weights contains: %s",
@@ -138,33 +144,38 @@ log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
   )
 
   futile.logger::flog.trace(
-    "log_vals_2 contains: %s",
-    paste(Rmpfr::format(log_vals_2, digits = 4), collapse = ", ")
+    "log_cdf_vals_2 contains: %s",
+    paste(Rmpfr::format(log_cdf_vals_2, digits = 4), collapse = ", ")
   )
 
   stopifnot(
     length(points) > 0,
     all(weights > 0),
-    all(log_vals_2 <= 0)
+    all(log_cdf_vals_2 <= 0)
   )
 
-  log_top <- 2 * log(abs(vals_1 - exp(log_vals_2)))
+  # log_top here is specific to the logCVM discrep. The weights/log_pdf_2 term
+  # is required to "correct" the importance sampling.
+  log_top <- 2 * log(abs(vals_1 - exp(log_cdf_vals_2)))
   log_weights <- log(weights)
-  log_integrand <- log_top - log_weights
+  log_integrand <- log_top - log_weights + log_pdf_vals_2
+
   max_c <- max(log_integrand)
   log_res <- log(sum(exp(log_integrand - max_c))) + max_c
   final_res <- -log_n + log_res
+
   return(as.numeric(final_res))
 }
 
 # andersen darling
 # note that the second argument is the **log_cdf**
-log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
+log_ad_discrepancy <- function(ecdf_1, log_cdf_2, log_pdf_2, points, weights) {
   high_prec_points <- Rmpfr::mpfr(points, 120)
   high_prec_weights <- Rmpfr::mpfr(weights, 120)
 
   vals_1 <- ecdf_1(as.numeric(points))
-  log_vals_2 <- log_cdf_2(high_prec_points)
+  log_cdf_vals_2 <- log_cdf_2(high_prec_points)
+  log_pdf_vals_2 <- log_pdf_2(high_prec_points)
   log_weights_term <- log(high_prec_weights)
 
   futile.logger::flog.trace(
@@ -180,18 +191,18 @@ log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
   # leq to deal with rounding up to zero? for the right hand tail????
   # high prec is supposed to get around that.
   futile.logger::flog.trace(
-    "log_vals_2 contains: %s",
-    paste(Rmpfr::format(log_vals_2, digits = 4), collapse = ", ")
+    "log_cdf_vals_2 contains: %s",
+    paste(Rmpfr::format(log_cdf_vals_2, digits = 4), collapse = ", ")
   )
 
-  stopifnot(all(log_vals_2 <= 0))
+  stopifnot(all(log_cdf_vals_2 <= 0))
 
   # numerator term -- will underflow, which will make me return 0
-  # use high prec log_vals_2
-  log_top <- 2 * log(abs(vals_1 - exp(log_vals_2)))
+  # use high prec log_cdf_vals_2
+  log_top <- 2 * log(abs(vals_1 - exp(log_cdf_vals_2)))
 
   # denominator term
-  log_bot <- (log_vals_2) + Rmpfr::log1mexp(a = -log_vals_2)
+  log_bot <- (log_cdf_vals_2) + Rmpfr::log1mexp(a = -log_cdf_vals_2)
 
   # need to check because under/overflow still an issue
   bad_indices <- c(
@@ -208,7 +219,7 @@ log_ad_discrepancy <- function(ecdf_1, log_cdf_2, points, weights) {
 
   log_n <- log(length(points) - length(bad_indices))
 
-  log_integrand <- log_top - log_bot - log_weights_term
+  log_integrand <- log_top - log_bot - log_weights_term + log_pdf_vals_2
   max_c <- max(log_integrand)
   log_res <- log(sum(exp(log_integrand - max_c))) + max_c
   final_res <- -log_n + log_res

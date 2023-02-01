@@ -9,6 +9,9 @@
 #'   performance is improved by using high precision versions of functions
 #'   compatible with \code{\link[Rmpfr]{mpfr}} points. See
 #'   \code{\link[Rmpfr]{mpfr-class}} for a range of such functions.
+#' @param target_lpdf Function: Vectorised target log-PDF (density/mass function
+#'   ). Corresponds to \code{target_lcdf}, and is currently required by the
+#'   importance sampling algorithm.
 #' @param target_sampler Function: Generates samples from the target
 #'   distribution. Takes one argument \code{n}, the desired number of samples.
 #' @param prior_predictive_sampler Function: Generates samples from the prior
@@ -136,6 +139,7 @@
 pbbo <- function(
   model_name = "default",
   target_lcdf,
+  target_lpdf,
   target_sampler,
   prior_predictive_sampler,
   param_set,
@@ -166,6 +170,7 @@ pbbo <- function(
 ) {
   stopifnot(
     is.function(target_lcdf),
+    is.function(target_lpdf),
     is.function(target_sampler),
     is.function(prior_predictive_sampler),
     is.list(param_set),
@@ -207,6 +212,7 @@ pbbo <- function(
 
     discrep_partial <- build_discrep_covariate(
       target_lcdf = target_lcdf,
+      target_lpdf = target_lpdf,
       target_sampler = target_sampler,
       prior_predictive_sampler = prior_predictive_sampler,
       covariate_list = covariate_list,
@@ -219,6 +225,7 @@ pbbo <- function(
   } else {
     discrep_partial <- build_discrep(
       target_lcdf = target_lcdf,
+      target_lpdf = target_lpdf,
       target_sampler = target_sampler,
       prior_predictive_sampler = prior_predictive_sampler,
       internal_discrepancy_f = internal_discrepancy_f,
