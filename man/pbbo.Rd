@@ -22,6 +22,7 @@ pbbo(
     surv_mixture_sd_multiplier = 1.05, surv_mixture_cont_frac = 0.95,
     surv_mixture_cens_times = rep(NULL, length(covariate_values))),
   n_internal_importance_draws = 5000,
+  n_design_pad = 10,
   bayes_opt_batches = 1,
   bayes_opt_iters_per_batch = 300,
   bayes_opt_design_points_per_batch = min(4 * length(param_set$pars),
@@ -125,6 +126,9 @@ importance.}
 \item{n_internal_importance_draws}{Numeric: Number of draws to generate from
 the importance distribution, and subsequently used to evaluate the
 discrepancy integral.}
+
+\item{n_design_pad}{Numeric: Number of additional samples added to designs
+for numerical stability/robustness. These are drawn from a Latin hypercube.}
 
 \item{bayes_opt_batches}{Numeric: Number of batches to run the Bayesian
 optimisation algorithm for. Minimum 1.}

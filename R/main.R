@@ -82,6 +82,8 @@
 #' @param n_internal_importance_draws Numeric: Number of draws to generate from
 #'   the importance distribution, and subsequently used to evaluate the
 #'   discrepancy integral.
+#' @param n_design_pad Numeric: Number of additional samples added to designs
+#'   for numerical stability/robustness. These are drawn from a Latin hypercube.
 #' @param bayes_opt_batches Numeric: Number of batches to run the Bayesian
 #'   optimisation algorithm for. Minimum 1.
 #' @param bayes_opt_iters_per_batch Numeric: Number of iterations of Bayesian
@@ -158,6 +160,7 @@ pbbo <- function(
     surv_mixture_cens_times = rep(NULL, length(covariate_values))
   ),
   n_internal_importance_draws = 5e3,
+  n_design_pad = 10,
   bayes_opt_batches = 1,
   bayes_opt_iters_per_batch = 300,
   bayes_opt_design_points_per_batch = min(
@@ -240,6 +243,7 @@ pbbo <- function(
     discrep = discrep_partial,
     param_set = param_set,
     n_design = bayes_opt_design_points_per_batch,
+    n_design_pad = n_design_pad,
     n_crs2_iters = n_crs2_iters
   )
 
@@ -301,6 +305,15 @@ pbbo <- function(
 
       if (!is.null(extra_objective_term)) {
         log_raw_weights <- -exp(prev_batch_path$y_1)
+
+        prev_batch_pf_design <- full_batch_res[[batch_num - 1]][["pareto.set"]] %>%
+          lapply(function(x) as.data.frame(x)) %>%
+          dplyr::bind_rows()
+
+        bayes_opt_design_points_per_batch <- max(
+          1,
+          bayes_opt_design_points_per_batch - nrow(prev_batch_pf_design)
+        )
       } else {
         log_raw_weights <- -exp(prev_batch_path$y)
       }
@@ -314,10 +327,22 @@ pbbo <- function(
         prob = weights
       )
 
-      batch_design <- prev_batch_path[
-        prev_batch_indices,
-        design_col_names
-      ]
+      batch_design <- prev_batch_path[prev_batch_indices, design_col_names]
+      pad_design <- ParamHelpers::generateDesign(
+        n = n_design_pad,
+        par.set = param_set,
+        fun = lhs::maximinLHS
+      )
+
+      batch_design <- dplyr::bind_rows(batch_design, pad_design)
+
+      if (!is.null(extra_objective_term)) {
+        batch_design <- subset(batch_design, select = -c(y_1, y_2))
+        batch_design <- dplyr::bind_rows(prev_batch_pf_design, batch_design)
+      } else {
+        batch_design <- subset(batch_design, select = -y)
+      }
+
     }
 
     batch_mbo_res <- mlrMBO::mbo(

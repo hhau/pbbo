@@ -49,6 +49,7 @@ t_res <- pbbo:::design_from_crs2(
   discrep = test_discrepancy,
   param_set = param_set,
   n_design = 20,
+  n_design_pad = 10,
   n_crs2_iters = 33
 )
 

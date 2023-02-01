@@ -36,6 +36,7 @@ test_that("main function can run error free", {
     n_internal_prior_draws = 20,
     n_internal_importance_draws = 10,
     bayes_opt_iters_per_batch = 5,
+    bayes_opt_batches = 2,
     bayes_opt_print = FALSE
   ))
 

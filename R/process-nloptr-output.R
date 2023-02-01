@@ -1,4 +1,10 @@
-design_from_crs2 <- function(discrep, param_set, n_design, n_crs2_iters) {
+design_from_crs2 <- function(
+  discrep,
+  param_set,
+  n_design,
+  n_design_pad,
+  n_crs2_iters
+) {
   init_val <- ParamHelpers::generateDesign(
     n = 1,
     par.set = param_set,
@@ -31,7 +37,7 @@ design_from_crs2 <- function(discrep, param_set, n_design, n_crs2_iters) {
   # sometimes output from crs2 is insufficiently diverse, so add extra points
   # because otherwise everything downstream breaks. 10 is just a magic number
   base_desgin <- ParamHelpers::generateDesign(
-    n = 10,
+    n = n_design_pad,
     par.set = param_set,
     fun = lhs::maximinLHS
   )
