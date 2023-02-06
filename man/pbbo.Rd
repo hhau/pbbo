@@ -89,7 +89,10 @@ is the corresponding vector of importance weights.}
 
 \item{n_crs2_iters}{Numeric: Number of iterations to run the CRS2 algorithm
 from \code{\link[nloptr]{nloptr}}. These are used to initialise the Bayes
-Opt stages, as it can be better at finding global minima. It only handles
+Opt stages, as it can be better at finding global minima. It only handles}
+
+\item{crs2_ranseed}{Numeric: Integer seed for the CRS2 algorithm inside
+\code{\link[nloptr]{nloptr}}.
 single objectives, so it does not include the \code{extra_objective_term}.}
 
 \item{n_internal_prior_draws}{Numeric: Number of draws to generate from the
