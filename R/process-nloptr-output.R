@@ -3,7 +3,8 @@ design_from_crs2 <- function(
   param_set,
   n_design,
   n_design_pad,
-  n_crs2_iters
+  n_crs2_iters,
+  crs2_ranseed
 ) {
   init_val <- ParamHelpers::generateDesign(
     n = 1,
@@ -27,7 +28,8 @@ design_from_crs2 <- function(
     init_val = init_val,
     nlr_opt_wrap = nlr_opt_wrap,
     param_set = param_set,
-    n_crs2_iters = n_crs2_iters
+    n_crs2_iters = n_crs2_iters,
+    crs2_ranseed = crs2_ranseed
   )
 
   res <- process_output_file(output_file, param_set) %>%
@@ -59,10 +61,16 @@ run_nlopt_crs2 <- function(
   init_val,
   nlr_opt_wrap,
   param_set,
-  n_crs2_iters
+  n_crs2_iters,
+  crs2_ranseed
 ) {
   sink(file = output_file, append = TRUE)
   on.exit(expr = sink(file = NULL), add = TRUE, after = FALSE)
+
+  if (is.null(crs2_ranseed)) {
+    crs2_ranseed <- 0
+  }
+
   crs_res <- nloptr::nloptr(
     x0 = init_val,
     eval_f = nlr_opt_wrap,
@@ -72,7 +80,8 @@ run_nlopt_crs2 <- function(
       algorithm = "NLOPT_GN_CRS2_LM",
       print_level = 3,
       maxeval = n_crs2_iters,
-      xtol_rel = -1
+      xtol_rel = -1,
+      ranseed = crs2_ranseed
     )
   )
 

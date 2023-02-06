@@ -15,6 +15,7 @@ pbbo(
   covariate_values = NULL,
   discrepancy = "log_cvm",
   n_crs2_iters = 2000,
+  crs2_ranseed = NULL,
   n_internal_prior_draws = 50000,
   importance_method = "uniform",
   importance_args = list(uniform_lower = NULL, uniform_upper = NULL,

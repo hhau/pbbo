@@ -50,7 +50,8 @@ t_res <- pbbo:::design_from_crs2(
   param_set = param_set,
   n_design = 20,
   n_design_pad = 10,
-  n_crs2_iters = 33
+  n_crs2_iters = 33,
+  crs2_ranseed = NULL
 )
 
 test_that("crs2_desgin returns a tibble and does not error", {

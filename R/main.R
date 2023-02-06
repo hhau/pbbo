@@ -148,6 +148,7 @@ pbbo <- function(
   covariate_values = NULL,
   discrepancy = "log_cvm",
   n_crs2_iters = 2000,
+  crs2_ranseed = NULL,
   n_internal_prior_draws = 5e4,
   importance_method = "uniform",
   importance_args = list(
@@ -178,6 +179,8 @@ pbbo <- function(
     is.function(prior_predictive_sampler),
     is.list(param_set),
     discrepancy %in% c("log_ad", "log_cvm") | is.function(discrepancy),
+    is.numeric(n_crs2_iters),
+    is.null(crs2_ranseed) | is.numeric(crs2_ranseed),
     is.numeric(n_internal_prior_draws),
     is.numeric(n_internal_importance_draws),
     1 < n_internal_prior_draws,
@@ -244,7 +247,8 @@ pbbo <- function(
     param_set = param_set,
     n_design = bayes_opt_design_points_per_batch,
     n_design_pad = n_design_pad,
-    n_crs2_iters = n_crs2_iters
+    n_crs2_iters = n_crs2_iters,
+    crs2_ranseed = crs2_ranseed
   )
 
   if (!is.null(extra_objective_term) & is.function(extra_objective_term)) {
