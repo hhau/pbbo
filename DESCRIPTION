@@ -29,6 +29,7 @@ Imports:
     Rmpfr,
     tidyr,
     emoa,
+    mco,
     matrixStats,
     tibble,
     stringr,
