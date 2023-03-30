@@ -215,10 +215,10 @@ log_ad_discrepancy <- function(ecdf_1, log_cdf_2, log_pdf_2, points, weights) {
     log_top <- log_top[-bad_indices]
     log_bot <- log_bot[-bad_indices]
     log_weights_term <- log_weights_term[-bad_indices]
+    log_pdf_vals_2 <- log_pdf_vals_2[-bad_indices]
   }
 
   log_n <- log(length(points) - length(bad_indices))
-
   log_integrand <- log_top - log_bot - log_weights_term + log_pdf_vals_2
   max_c <- max(log_integrand)
   log_res <- log(sum(exp(log_integrand - max_c))) + max_c
