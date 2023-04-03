@@ -313,7 +313,12 @@ pbbo <- function(
         log_raw_weights <- -exp(prev_batch_path$y_1)
 
         prev_batch_pf_design <- full_batch_res[[batch_num - 1]][["pareto.set"]] %>%
-          lapply(function(x) as.data.frame(x)) %>%
+          lapply(function(x) {
+            x %>%
+            unlist() %>%
+            as.list() %>%
+            as.data.frame()
+          }) %>%
           dplyr::bind_rows()
 
         bayes_opt_design_points_per_batch <- max(
