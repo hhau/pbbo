@@ -14,6 +14,14 @@ build_discrep <- function(
     envir = environment(pbbo)
   )
 
+  if (!is.null(attr(internal_discrepancy_f, "name"))) {
+    if (attr(internal_discrepancy_f, "name") == "gaussian_kl_approx") {
+      stop("KL approximation using Gaussian not implemented for non-covariate setting.")
+    } else {
+      stop("Unknown discrepancy function - don't set a 'name' attribute if passing in a complete discrepancy function.")
+    }
+  }
+
   res <- function(lambda_mlrform) {
     prior_sample <- prior_predictive_sampler(
       n_internal_prior_draws,
@@ -73,6 +81,13 @@ build_discrep_covariate <- function(
 ) {
   n_covariate_obs <- length(covariate_list)
 
+  if (!is.null(attr(internal_discrepancy_f, "name"))) {
+    if (attr(internal_discrepancy_f, "name") == "gaussian_kl_approx") {
+      full_discrep <- build_approx_kl_discrep()
+      return(full_discrep)
+    }
+  }
+
   discrep_list <- lapply(seq_len(n_covariate_obs), function(cov_index) {
     a_covariate_draw <- covariate_list[[cov_index]]
     local_prior_draws <- round(n_internal_prior_draws / n_covariate_obs)
@@ -124,7 +139,6 @@ build_discrep_covariate <- function(
 
   return(full_discrep)
 }
-
 
 # cramer-von mises
 log_cvm_discrepancy <- function(ecdf_1, log_cdf_2, log_pdf_2, points, weights) {
