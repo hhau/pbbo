@@ -83,7 +83,13 @@ build_discrep_covariate <- function(
 
   if (!is.null(attr(internal_discrepancy_f, "name"))) {
     if (attr(internal_discrepancy_f, "name") == "gaussian_kl_approx") {
-      full_discrep <- build_approx_kl_discrep()
+      full_discrep <- build_approx_kl_discrep(
+        target_sampler = target_sampler,
+        prior_predictive_sampler = prior_predictive_sampler,
+        covariate_list = covariate_list,
+        n_samples_for_approx = n_internal_prior_draws
+      )
+      
       return(full_discrep)
     }
   }

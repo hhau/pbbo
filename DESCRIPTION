@@ -1,6 +1,6 @@
 Package: pbbo
 Title: Prior by Bayesian Optimisation
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     person(given = "Andrew",
            family = "Manderson",
@@ -13,7 +13,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.1
 Suggests: 
     checkmate,
     testthat (>= 3.0.0)
