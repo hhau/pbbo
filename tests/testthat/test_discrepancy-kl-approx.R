@@ -25,6 +25,6 @@ test_that("build_approx_kl_discrep passes known good case", {
   )
 
   val <- approx_kl(c("mu" = 1, "sigma" = 0.25))
-  # this should pass approx (1 - 2e-5) * 100 % pf the time
+  # this should pass approx ((1 - 2e-5) * 100)% of the time
   expect_equal(object = val, expected = 17.61254, tolerance = 0.089)
 })

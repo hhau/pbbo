@@ -37,7 +37,6 @@ build_approx_kl_discrep <- function(
     # compute the mean/covariance
     target_mean <- apply(target_samples, 2, mean)
     target_cov <- cov(target_samples)
-
     prior_pred_mean <- apply(prior_pred_samples, 2, mean)
     prior_pred_cov <- cov(prior_pred_samples)
 
@@ -70,9 +69,8 @@ kl_divergence_gaussian <- function(mu1, sigma1, mu2, sigma2) {
   d <- length(mu1)
   trace_term <- sum(diag(solve(sigma2, sigma1)))
   det_term <- log(det(sigma2)) - log(det(sigma1))
-
   mean_term <- t(mu1 - mu2) %*% solve(sigma2, mu1 - mu2)
-  kl_div <- 0.5 * (trace_term + det_term + mean_term - d)
 
+  kl_div <- 0.5 * (trace_term + det_term + mean_term - d)
   return(as.numeric(kl_div))
 }

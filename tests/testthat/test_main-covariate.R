@@ -20,7 +20,7 @@ prior_predictive_sampler <- function(n, lambda, cov) {
 }
 
 param_set <- makeParamSet(
-  makeNumericParam(id = "mu", default = 0.2, lower = -50, upper = 50),
+  makeNumericParam(id = "mu", lower = -50, upper = 50, default = 0.2),
   makeNumericParam(id = "sigma", lower = 0, upper = 20, default = 0.2)
 )
 
@@ -64,4 +64,29 @@ test_that("bad covariate args cause an error", {
       bayes_opt_print = FALSE
     )
   )
+})
+
+dummy_f <- function() {}
+attr(dummy_f, "name") <- "gaussian_kl_approx"
+
+test_that("main function with covariates can use approx KL as discrepancy", {
+  mlr_res <- suppressWarnings(
+    pbbo(
+      model_name = "test_normal_covariate",
+      target_lcdf = target_lcdf,
+      target_lpdf = target_lpdf,
+      target_sampler = target_sampler,
+      prior_predictive_sampler = prior_predictive_sampler,
+      covariate_values = cov_values,
+      discrepancy = dummy_f,
+      n_crs2_iters = 20,
+      param_set = param_set,
+      n_internal_prior_draws = 20,
+      n_internal_importance_draws = 50,
+      bayes_opt_iters_per_batch = 3,
+      bayes_opt_print = FALSE
+    )
+  )
+
+  expect_s3_class(mlr_res[[1]], class = "MBOSingleObjResult")
 })
