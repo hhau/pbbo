@@ -180,7 +180,7 @@ pbbo <- function(
     is.function(target_sampler),
     is.function(prior_predictive_sampler),
     is.list(param_set),
-    discrepancy %in% c("log_ad", "log_cvm") | is.function(discrepancy),
+    is.function(discrepancy) || discrepancy %in% c("log_ad", "log_cvm"),
     is.numeric(n_crs2_iters),
     is.null(crs2_ranseed) | is.numeric(crs2_ranseed),
     is.numeric(n_internal_prior_draws),
