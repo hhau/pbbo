@@ -72,5 +72,5 @@ kl_divergence_gaussian <- function(mu1, sigma1, mu2, sigma2) {
   mean_term <- t(mu1 - mu2) %*% solve(sigma2, mu1 - mu2)
 
   kl_div <- 0.5 * (trace_term + det_term + mean_term - d)
-  return(as.numeric(kl_div))
+  return(log(as.numeric(kl_div)))
 }

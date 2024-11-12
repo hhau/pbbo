@@ -5,7 +5,7 @@ test_that("Identical case returns 0", {
   sigma2 <- matrix(c(1, 0, 0, 1), 2, 2)
   
   kl_div <- kl_divergence_gaussian(mu1, sigma1, mu2, sigma2)
-  expect_equal(kl_div, 0, tolerance = 1e-10)
+  expect_equal(kl_div, -Inf, tolerance = 1e-10)
 })
 
 test_that("Invalid inputs throw an error", {
@@ -24,5 +24,5 @@ test_that("Known good test case", {
   sigma2 <- matrix(c(2, 0, 0, 2), 2, 2)
   
   kl_div <- kl_divergence_gaussian(mu1, sigma1, mu2, sigma2)
-  expect_equal(kl_div, 0.8369882, tolerance = 1e-6)
+  expect_equal(kl_div, log(0.8369882), tolerance = 1e-6)
 })
