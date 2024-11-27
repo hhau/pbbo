@@ -56,6 +56,43 @@ build_approx_kl_discrep <- function(
   return(out)
 }
 
+build_approx_kl_discrep_pop <- function(
+  target_sampler = target_sampler,
+  prior_predictive_sampler = prior_predictive_sampler,
+  n_samples_for_approx = n_internal_prior_draws
+) {
+
+  out <- function(lambda) {
+    # we could, ofc, fix this to minimise computational
+    # effort - later
+    target_samples <- matrix(NA, nrow = n_samples_for_approx, ncol = 1)
+    prior_pred_samples <- matrix(NA, nrow = n_samples_for_approx, ncol = 1)
+    target_samples[, 1] <- target_sampler(n_samples_for_approx)
+    prior_pred_samples[, 1] <- prior_predictive_sampler(n_samples_for_approx, lambda)
+
+    # compute the mean/covariance - this still works/is type correct
+    # for the univariate/population case
+    target_mean <- apply(target_samples, 2, mean)
+    target_cov <- cov(target_samples)
+    prior_pred_mean <- apply(prior_pred_samples, 2, mean)
+    prior_pred_cov <- cov(prior_pred_samples)
+
+    # compute the KL
+    kl_val <- kl_divergence_gaussian(
+      mu1 = target_mean,
+      sigma1 = target_cov,
+      mu2 = prior_pred_mean,
+      sigma2 = prior_pred_cov
+    )
+
+    return(kl_val)
+  }
+
+  # return a function of lambda (l) that computes the
+  # KL approx discrep
+  return(out)
+}
+
 kl_divergence_gaussian <- function(mu1, sigma1, mu2, sigma2) {
   stopifnot(
     length(mu1) == length(mu2),

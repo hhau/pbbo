@@ -81,7 +81,7 @@ make_beta_params <- function(sample, sd_multiplier) {
   shape2 <- (1 - samp_mean) * (t1 - 1)
 
   if (is.na(shape1) | shape1 <= 0) {
-    futile.logger::flog.info(
+    futile.logger::flog.trace(
       "surv_mixture_importance failed to find appropriate beta shape1.
       defaulting to shape1 = 1. This is hopefully just a function of early
       optimisation numerics"
@@ -91,7 +91,7 @@ make_beta_params <- function(sample, sd_multiplier) {
   }
 
   if (is.na(shape2) | shape2 <= 0) {
-     futile.logger::flog.info(
+     futile.logger::flog.trace(
       "surv_mixture_importance failed to find appropriate beta shape2.
       defaulting to shape2 = 1. This is hopefully just a function of early
       optimisation numerics"

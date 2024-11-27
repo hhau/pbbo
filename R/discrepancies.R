@@ -16,7 +16,15 @@ build_discrep <- function(
 
   if (!is.null(attr(internal_discrepancy_f, "name"))) {
     if (attr(internal_discrepancy_f, "name") == "gaussian_kl_approx") {
-      stop("KL approximation using Gaussian not implemented for non-covariate setting.")
+      res <- function(lambda_mlrform) {
+        inner_val <- build_approx_kl_discrep_pop(
+          target_sampler = target_sampler,
+          prior_predictive_sampler = prior_predictive_sampler,
+          n_samples_for_approx = n_internal_prior_draws
+        )
+      }
+
+      return(res)
     } else {
       stop("Unknown discrepancy function - don't set a 'name' attribute if passing in a complete discrepancy function.")
     }

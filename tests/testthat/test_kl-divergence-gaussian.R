@@ -26,3 +26,14 @@ test_that("Known good test case", {
   kl_div <- kl_divergence_gaussian(mu1, sigma1, mu2, sigma2)
   expect_equal(kl_div, log(0.8369882), tolerance = 1e-6)
 })
+
+
+test_that("Univariate setting for KL Gaussian approx", {
+  mu1 <- c(0)
+  sigma1 <- matrix(1, 1, 1)
+
+  mu2 <- c(1)
+  sigma2 <- matrix(2, 1, 1)
+  kl_div <- kl_divergence_gaussian(mu1, sigma1, mu2, sigma2)
+  expect_equal(kl_div, -1.05966, tolerance = 1e-6)
+})
