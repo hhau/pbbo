@@ -16,12 +16,14 @@ build_discrep <- function(
 
   if (!is.null(attr(internal_discrepancy_f, "name"))) {
     if (attr(internal_discrepancy_f, "name") == "gaussian_kl_approx") {
-      res <- function(lambda_mlrform) {
+      res <- function(lambda) {
         inner_val <- build_approx_kl_discrep_pop(
           target_sampler = target_sampler,
           prior_predictive_sampler = prior_predictive_sampler,
           n_samples_for_approx = n_internal_prior_draws
         )
+
+        return(inner_val(lambda))
       }
 
       return(res)
