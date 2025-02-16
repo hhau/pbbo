@@ -16,7 +16,8 @@ test_that("build_approx_kl_discrep passes known good case", {
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
     covariate_list = cov_values,
-    n_samples_for_approx = 2e6
+    n_samples_for_approx = 2e6,
+    direction = "fwd"
   )
 
   val <- approx_kl(c("mu" = 1, "sigma" = 0.25))
@@ -39,7 +40,8 @@ test_that("build_approx_kl_discrep_pop passes known good case for population set
   approx_kl <- build_approx_kl_discrep_pop(
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
-    n_samples_for_approx = 2e6
+    n_samples_for_approx = 2e6,
+    direction = "fwd"
   )
 
   val <- approx_kl(test_lambda)

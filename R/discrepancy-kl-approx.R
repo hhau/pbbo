@@ -2,8 +2,14 @@ build_approx_kl_discrep <- function(
   target_sampler = target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
   covariate_list = covariate_list,
-  n_samples_for_approx = n_internal_prior_draws
+  n_samples_for_approx = n_internal_prior_draws,
+  direction
 ) {
+  stopifnot(direction %in% c("fwd", "rev"))
+
+  if (missing(direction)) {
+    direction <- "fwd"
+  }
 
   out <- function(lambda) {
     # we could, ofc, fix this to minimise computational
@@ -40,13 +46,23 @@ build_approx_kl_discrep <- function(
     prior_pred_mean <- apply(prior_pred_samples, 2, mean)
     prior_pred_cov <- cov(prior_pred_samples)
 
-    # compute the KL
-    kl_val <- kl_divergence_gaussian(
-      mu1 = target_mean,
-      sigma1 = target_cov,
-      mu2 = prior_pred_mean,
-      sigma2 = prior_pred_cov
-    )
+    if (direction == "fwd") {
+      kl_val <- kl_divergence_gaussian(
+        mu1 = target_mean,
+        sigma1 = target_cov,
+        mu2 = prior_pred_mean,
+        sigma2 = prior_pred_cov
+      )
+    }
+
+    if (direction == "rev") {
+      kl_val <- kl_divergence_gaussian(
+        mu1 = prior_pred_mean,
+        sigma1 = prior_pred_cov,
+        mu2 = target_mean,
+        sigma2 = target_cov
+      )
+    }
 
     return(kl_val)
   }
@@ -59,8 +75,16 @@ build_approx_kl_discrep <- function(
 build_approx_kl_discrep_pop <- function(
   target_sampler = target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
-  n_samples_for_approx = n_internal_prior_draws
+  n_samples_for_approx = n_internal_prior_draws,
+  direction
 ) {
+  stopifnot(direction %in% c("fwd", "rev"))
+
+  if (missing(direction)) {
+    direction <- "fwd"
+  }
+  # necessary for the closure magic I think?
+  #inner_direction <- direction
 
   out <- function(lambda) {
     # we could, ofc, fix this to minimise computational
@@ -77,13 +101,23 @@ build_approx_kl_discrep_pop <- function(
     prior_pred_mean <- apply(prior_pred_samples, 2, mean)
     prior_pred_cov <- cov(prior_pred_samples)
 
-    # compute the KL
-    kl_val <- kl_divergence_gaussian(
-      mu1 = target_mean,
-      sigma1 = target_cov,
-      mu2 = prior_pred_mean,
-      sigma2 = prior_pred_cov
-    )
+    if (direction == "fwd") {
+      kl_val <- kl_divergence_gaussian(
+        mu1 = target_mean,
+        sigma1 = target_cov,
+        mu2 = prior_pred_mean,
+        sigma2 = prior_pred_cov
+      )
+    }
+
+    if (direction == "rev") {
+      kl_val <- kl_divergence_gaussian(
+        mu1 = prior_pred_mean,
+        sigma1 = prior_pred_cov,
+        mu2 = target_mean,
+        sigma2 = target_cov
+      )
+    }
 
     return(kl_val)
   }

@@ -15,12 +15,14 @@ build_discrep <- function(
   )
 
   if (!is.null(attr(internal_discrepancy_f, "name"))) {
-    if (attr(internal_discrepancy_f, "name") == "gaussian_kl_approx") {
+    if (stringr::str_starts(attr(internal_discrepancy_f, "name"), "kl_approx")) {
+      dir <- stringr::str_sub(attr(internal_discrepancy_f, "name"), start = -3)
       res <- function(lambda) {
         inner_val <- build_approx_kl_discrep_pop(
           target_sampler = target_sampler,
           prior_predictive_sampler = prior_predictive_sampler,
-          n_samples_for_approx = n_internal_prior_draws
+          n_samples_for_approx = n_internal_prior_draws,
+          direction = dir
         )
 
         return(inner_val(lambda))
@@ -92,12 +94,14 @@ build_discrep_covariate <- function(
   n_covariate_obs <- length(covariate_list)
 
   if (!is.null(attr(internal_discrepancy_f, "name"))) {
-    if (attr(internal_discrepancy_f, "name") == "gaussian_kl_approx") {
+    if (stringr::str_starts(attr(internal_discrepancy_f, "name"), "kl_approx")) {
+      dir <- stringr::str_sub(attr(internal_discrepancy_f, "name"), start = -3)
       full_discrep <- build_approx_kl_discrep(
         target_sampler = target_sampler,
         prior_predictive_sampler = prior_predictive_sampler,
         covariate_list = covariate_list,
-        n_samples_for_approx = n_internal_prior_draws
+        n_samples_for_approx = n_internal_prior_draws,
+        direction = dir
       )
       
       return(full_discrep)

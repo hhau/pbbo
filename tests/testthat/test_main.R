@@ -75,9 +75,6 @@ test_that("batching can run error free", {
   expect_s3_class(pbbo_res[[2]], class = "MBOSingleObjResult")
 })
 
-dummy_f <- function() {}
-attr(dummy_f, "name") <- "gaussian_kl_approx"
-
 test_that("main function in population setting can use approx KL discrepancy", {
   pbbo_res <- suppressWarnings(pbbo(
     model_name = "test_normal",
@@ -85,7 +82,7 @@ test_that("main function in population setting can use approx KL discrepancy", {
     target_lpdf = target_lpdf,
     target_sampler = target_sampler,
     prior_predictive_sampler = prior_predictive_sampler,
-    discrepancy = dummy_f,
+    discrepancy = "kl_approx_fwd",
     param_set = param_set,
     n_crs2_iters = 10,
     n_internal_prior_draws = 40,
