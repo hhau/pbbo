@@ -195,7 +195,7 @@ pbbo(
   target_lcdf = target_lcdf,
   target_sampler = target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
-  discrepancy = 'cvm',
+  discrepancy = 'log_cvm',
   param_set = param_set,
   n_internal_prior_draws = 750,
   n_internal_importance_draws = 200,
