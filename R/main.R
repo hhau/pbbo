@@ -46,6 +46,12 @@
 #'   the first argument is the ECDF of the PPD, the second is the LCDF of the
 #'   target, \code{points} is a vector of evaluation points, and \code{weights}
 #'   is the corresponding vector of importance weights.
+#'
+#'   An approximate KL divergence can be used as a discrepancy by supplying
+#'   either \code{'kl_approx_fwd'} or \code{'kl_approx_rev'}. This uses a
+#'   Gaussian approximation to both the target and the prior predictive
+#'   marginals, which may or may not be appropriate for certain target/model
+#'   combinations.
 #' @param n_crs2_iters Numeric: Number of iterations to run the CRS2 algorithm
 #'   from \code{\link[nloptr]{nloptr}}. These are used to initialise the Bayes
 #'   Opt stages, as it can be better at finding global minima. It only handles
@@ -133,7 +139,7 @@
 #'   target_lcdf = target_lcdf,
 #'   target_sampler = target_sampler,
 #'   prior_predictive_sampler = prior_predictive_sampler,
-#'   discrepancy = 'cvm',
+#'   discrepancy = 'log_cvm',
 #'   param_set = param_set,
 #'   n_internal_prior_draws = 750,
 #'   n_internal_importance_draws = 200,
@@ -180,7 +186,9 @@ pbbo <- function(
     is.function(target_sampler),
     is.function(prior_predictive_sampler),
     is.list(param_set),
-    discrepancy %in% c("log_ad", "log_cvm") | is.function(discrepancy),
+    is.function(discrepancy) || discrepancy %in% c(
+      "log_ad", "log_cvm", "kl_approx_fwd", "kl_approx_rev"
+    ),
     is.numeric(n_crs2_iters),
     is.null(crs2_ranseed) | is.numeric(crs2_ranseed),
     is.numeric(n_internal_prior_draws),
@@ -198,9 +206,17 @@ pbbo <- function(
 
   if (is.function(discrepancy)) {
     internal_discrepancy_f <- discrepancy
-  } else {
-    x <- paste0(discrepancy, "_discrepancy")
-    internal_discrepancy_f <- get(x, envir = environment(pbbo))
+  } else if (discrepancy == "log_ad") {
+    internal_discrepancy_f <- log_ad_discrepancy
+  } else if (discrepancy == "log_cvm") {
+    internal_discrepancy_f <- log_cvm_discrepancy
+  } else if (discrepancy %in% c("kl_approx_fwd", "kl_approx_rev")) {
+    dir <- stringr::str_sub(discrepancy, start = -3)
+    internal_discrepancy_f <- function() {}
+    attr(internal_discrepancy_f, "name") <- paste0(
+      c("kl_approx", dir),
+      collapse ="_"
+    )
   }
 
   if (!is.null(covariate_values)) {

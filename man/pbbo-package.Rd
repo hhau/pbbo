@@ -3,7 +3,6 @@
 \docType{package}
 \name{pbbo-package}
 \alias{pbbo-package}
-\alias{_PACKAGE}
 \title{pbbo: Prior by Bayesian Optimisation}
 \description{
 A thin wrapper around mlrMBO for choosing prior hyperparameters based on an ideal prior predictive distribution.

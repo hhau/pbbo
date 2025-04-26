@@ -18,10 +18,10 @@ pbbo(
   crs2_ranseed = NULL,
   n_internal_prior_draws = 50000,
   importance_method = "uniform",
-  importance_args = list(uniform_lower = NULL, uniform_upper = NULL,
-    gamma_sd_multiplier = 1.05, student_t_sd_multiplier = 1.05,
-    surv_mixture_sd_multiplier = 1.05, surv_mixture_cont_frac = 0.95,
-    surv_mixture_cens_times = rep(NULL, length(covariate_values))),
+  importance_args = list(uniform_lower = NULL, uniform_upper = NULL, gamma_sd_multiplier
+    = 1.05, student_t_sd_multiplier = 1.05, surv_mixture_sd_multiplier = 1.05,
+    surv_mixture_cont_frac = 0.95, surv_mixture_cens_times = rep(NULL,
+    length(covariate_values))),
   n_internal_importance_draws = 5000,
   n_design_pad = 10,
   bayes_opt_batches = 1,
@@ -85,7 +85,13 @@ difficult to compute accurately. Alternatively, one can supply a function
 with the signature \code{function(ecdf_1, lcdf_2, points, weights)}, where
 the first argument is the ECDF of the PPD, the second is the LCDF of the
 target, \code{points} is a vector of evaluation points, and \code{weights}
-is the corresponding vector of importance weights.}
+is the corresponding vector of importance weights.
+
+An approximate KL divergence can be used as a discrepancy by supplying
+either \code{'kl_approx_fwd'} or \code{'kl_approx_rev'}. This uses a
+Gaussian approximation to both the target and the prior predictive
+marginals, which may or may not be appropriate for certain target/model
+combinations.}
 
 \item{n_crs2_iters}{Numeric: Number of iterations to run the CRS2 algorithm
 from \code{\link[nloptr]{nloptr}}. These are used to initialise the Bayes
@@ -189,7 +195,7 @@ pbbo(
   target_lcdf = target_lcdf,
   target_sampler = target_sampler,
   prior_predictive_sampler = prior_predictive_sampler,
-  discrepancy = 'cvm',
+  discrepancy = 'log_cvm',
   param_set = param_set,
   n_internal_prior_draws = 750,
   n_internal_importance_draws = 200,
